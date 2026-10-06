@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>סדר בניית קרופר 15</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap">
+<style>
+/* layout: one quiet RTL column — settings card, then a plain numbered list; buildings stand out by weight + a thin marker, not by fill */
+:root{
+  --bg:#f7f7f8; --surface:#ffffff; --fg:#1f2329; --muted:#6e7480; --line:#e4e6ea;
+  --accent:#3d5a80; --accent-soft:#eef2f7;
+  --font:"Heebo",system-ui,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15171a; --surface:#1d2024; --fg:#e6e8eb; --muted:#9097a1; --line:#2c3036;
+  --accent:#8fb0d9; --accent-soft:#222a35; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15171a; --surface:#1d2024; --fg:#e6e8eb; --muted:#9097a1; --line:#2c3036;
+  --accent:#8fb0d9; --accent-soft:#222a35; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;line-height:1.55}
+.wrap{direction:rtl;text-align:right;max-width:600px;margin:0 auto;padding-inline:16px;padding-block:24px 48px;display:flex;flex-direction:column;gap:20px}
+h1{font-weight:700;font-size:1.3rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:.88rem;margin:4px 0 0}
+.controls{display:grid;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.lbl{font-size:.85rem;color:var(--muted);width:84px;flex:none}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:.9rem;border:0;background:transparent;color:var(--fg);padding:6px 14px;cursor:pointer}
+.seg button+button{border-inline-start:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.seg button:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+select{font:inherit;font-size:.9rem;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
+.total{font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.note{font-size:.82rem;color:var(--muted);margin:0}
+ol{list-style:none;margin:0;padding:0;counter-reset:s;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+li{counter-increment:s;display:flex;gap:14px;align-items:baseline;padding:11px 16px;border-top:1px solid var(--line);cursor:pointer;user-select:none}
+li:first-child{border-top:0}
+li::before{content:counter(s);flex:none;width:1.6em;text-align:center;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+li > span{min-width:0;font-variant-numeric:tabular-nums}
+li.f{color:var(--fg)}
+li.b{font-weight:700;color:var(--accent);box-shadow:inset -3px 0 0 var(--accent)}
+li.end{color:var(--muted);cursor:default}
+li.done{opacity:.35;text-decoration:line-through}
+</style>
+</head>
+<body>
+
+<div class="wrap" dir="rtl" lang="he">
+  <header>
+    <h1>סדר בניית בירת קרופר 15</h1>
+    <p class="sub">לפי מחשבון Cropcalc T4.4. לחיצה על שלב מסמנת אותו כבוצע.</p>
+  </header>
+
+  <section class="controls" aria-label="הגדרות">
+    <div class="row"><span class="lbl">שבט</span>
+      <div class="seg" id="tribe">
+        <button type="button" data-v="0" aria-pressed="true">גאלי / רומאי / טאוטוני</button>
+        <button type="button" data-v="1" aria-pressed="false">מצרי</button>
+      </div>
+    </div>
+    <div class="row"><span class="lbl">נווה מדבר</span>
+      <select id="o1" aria-label="נווה מדבר 1"><option value="50">50%</option><option value="25">25%</option><option value="0">0%</option></select>
+      <select id="o2" aria-label="נווה מדבר 2"><option value="50">50%</option><option value="25">25%</option><option value="0">0%</option></select>
+      <select id="o3" aria-label="נווה מדבר 3"><option value="50">50%</option><option value="25">25%</option><option value="0">0%</option></select>
+      <span class="total">סה״כ <span id="tot">150%</span></span>
+    </div>
+    <div class="row"><span class="lbl">בונוס זהב</span>
+      <div class="seg" id="gold">
+        <button type="button" data-v="1" aria-pressed="true">עם</button>
+        <button type="button" data-v="0" aria-pressed="false">בלי</button>
+      </div>
+    </div>
+    <p class="note">בונוס זהב לא משנה את סדר הבנייה, רק את קצב התפוקה.</p>
+  </section>
+
+  <ol id="list"></ol>
+</div>
+
+<script>
+// Raw orders pulled from the calculator (15 crop, capital). c=crop field, m=flour mill, b=bakery, h=hero's mansion, w=waterworks; token = building+new level, *n = repeated.
+const P="c1*15 c2*15 c3*15 c4*15 c5 m1 c5*14 c6*2 m2 c6*13 m3";
+const A=P+" c7*11 h10 c7*4 c8*15 m4 c9*2 c10 m5 b1 b2 c9*5 b3 c9*8 c10*5 b4 c10*9";
+const B=P+" c7*15 c8*3 m4 c8*4 c9 c10 m5 b1 b2 c8*5 b3 c8*3";
+const EA=P+" c7*11 h10 w1 c7*2 w2 c7*2 c8*5 w3 c8*10 w4 c9*2 m4 c9*2 c10 m5 b1 b2 c9*5 b3 c9*5 w5 c9 w6 c10*9 b4 c10*3 w7 c10*2";
+const EB=B+" c9*7 h10 w1 w2 c9*5 w3 c9*2 w4 b4 c10*11 w5 c10*3 c11*3 w6 c11*5 b5 c11*7 w7";
+const D={
+ "0_50_50_50":A+" h15 c11*15 b5 c12*15 c13*15 h20",
+ "0_50_50_25":A+" h15 c11*15 b5 c12*15 c13*15 c14*15 h20",
+ "0_50_50_0": A+" h15 c11*15 b5",
+ "0_50_25_25":A+" c11*13 b5 c11*2 h15 c12*15 c13*15 c14*15 h20",
+ "0_50_25_0": A+" c11*13 b5 c11*2 h15",
+ "0_50_0_0":  A+" c11*13 b5 c11*2",
+ "0_25_25_25":B+" c9*7 h10 c9*7 b4 c10*14 c11*7 b5 c11*8 h15 c12*15 c13*15 c14*12 h20",
+ "0_25_25_0": B+" c9*7 h10 c9*7 b4 c10*14 c11*7 b5 c11*8 h15",
+ "0_25_0_0":  B+" c9*7 h10 c9*7 b4 c10*14 c11*7 b5 c11*8",
+ "0_0_0_0":   B+" c9*14 b4 c10*14 b5",
+ "1_50_50_50":EA+" c11*2 h15 w8 w9 c11*10 w10 c11*3 w11 c12*2 b5 c12*7 w12 c12*6 w13 c13*9 w14 c13*6 w15 h20 w16 c14*14 w17 c14 w18 c15*14 w19 c15 w20",
+ "1_50_50_25":EA+" c11*2 h15 w8 w9 c11*10 w10 c11*3 w11 c12*2 b5 c12*7 w12 c12*6 w13 c13*9 w14 c13*6 w15 c14*7 w16 c14*8 w17 c15*5 w18 c15*4 h20 c15*6 w19 c16 w20",
+ "1_50_50_0": EA+" c11*2 h15 w8 w9 c11*10 w10 c11*3 w11 c12*2 b5 c12*7 w12 c12*6 w13 c13*9 w14 c13*6 w15 c14*7 w16 c14*8 w17 c15*5 w18 c15*10 w19 c16*7 w20",
+ "1_50_25_25":EA+" c11*4 w8 c11*11 w9 b5 w10 c12*5 h15 w11 c12*10 w12 c13*2 w13 c13*13 w14 w15 c14*15 w16 w17 h20 c15*5 w18 c15*10 w19 c16*7 w20",
+ "1_50_25_0": EA+" c11*4 w8 c11*11 w9 b5 w10 c12*5 h15 w11 c12*10 w12 c13*2 w13 c13*13 w14 w15 c14*15 w16 w17 c15*15 w18 w19 c16*15 w20",
+ "1_50_0_0":  EA+" c11*4 w8 c11*11 w9 b5 w10 c12*15 w11 w12 c13*15 w13 w14 c14*13 w15 c14*2 w16 c15*11 w17 c15*4 w18 c16*12 w19 c16*3 c17*7 w20",
+ "1_25_25_25":EB+" h15 w8 w9 c12 w10 c12*14 w11 w12 c13*15 w13 w14 c14*13 w15 c14*2 h20 w16 w17 c15*15 w18 w19 c16*15 w20",
+ "1_25_25_0": EB+" h15 w8 w9 c12 w10 c12*14 w11 w12 c13*15 w13 w14 c14*13 w15 c14*2 w16 c15*11 w17 c15*4 w18 c16*12 w19 c16*3 c17*7 w20",
+ "1_25_0_0":  EB+" w8 c12*13 w9 c12*2 w10 c13*13 w11 c13*2 w12 c14*9 w13 c14*6 w14 c15*7 w15 c15*8 w16 c16*7 w17 c16*8 c17*3 w18 c17*12 w19 w20"
+};
+D["1_0_0_0"]=D["0_0_0_0"]; // no oasis → Egyptian builds no waterworks
+
+const NAME={m:"טחנת דגן",b:"מאפיה",w:"מפעל מים",h:"אחוזת גיבור"};
+const OASIS={10:"נווה מדבר ראשון",15:"נווה מדבר שני",20:"נווה מדבר שלישי"};
+
+function tokens(s){const t=[];s.split(" ").forEach(x=>{const [k,n]=x.split("*");for(let i=0;i<(+n||1);i++)t.push(k);});return t;}
+function fieldText(f){
+  const c={};f.forEach(l=>c[l]=(c[l]||0)+1);
+  return Object.keys(c).map(Number).sort((a,b)=>a-b)
+    .map(l=>c[l]===1?`שדה יבול <span>1</span> שלב <span>${l}</span>`:`<span>${c[l]}</span> שדות יבול שלב <span>${l}</span>`).join(", ");
+}
+function summarize(s){
+  const f=Array(15).fill(0); const out=[]; let dirty=false, group=null;
+  const flush=()=>{if(group){out.push({b:1,html:Object.entries(group).map(([k,l])=>k==="h"?`${NAME.h} שלב <span>${l}</span> - ${OASIS[l]}`:`${NAME[k]} שלב <span>${l}</span>`).join(", ")});group=null;}};
+  tokens(s).forEach(t=>{const k=t[0],l=+t.slice(1);
+    if(k==="c"){flush();const i=f.indexOf(l-1);f[i]=l;dirty=true;}
+    else{if(dirty){out.push({b:0,html:fieldText(f)});dirty=false;}group=group||{};group[k]=l;}
+  });
+  flush(); return out;
+}
+
+const $=id=>document.getElementById(id);
+const state={tribe:"0",gold:"1"};
+function segInit(id,key){$(id).addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;state[key]=b.dataset.v;
+  [...$(id).children].forEach(x=>x.setAttribute("aria-pressed",x===b));render();});}
+function render(){
+  const o=[$("o1").value,$("o2").value,$("o3").value].map(Number).sort((a,b)=>b-a);
+  $("tot").textContent=o.reduce((a,b)=>a+b,0)+"%";
+  const steps=summarize(D[[state.tribe,...o].join("_")]);
+  $("list").innerHTML=steps.map(s=>`<li class="${s.b?"b":"f"}"><span>${s.html}</span></li>`).join("")
+    +`<li class="end"><span>המשיכו לבנות שדות יבול עד שלב 21</span></li>`;
+}
+segInit("tribe","tribe");segInit("gold","gold");
+["o1","o2","o3"].forEach(id=>$(id).addEventListener("change",render));
+$("list").addEventListener("click",e=>{const li=e.target.closest("li");if(li&&!li.classList.contains("end"))li.classList.toggle("done");});
+document.documentElement.setAttribute("dir","rtl");document.documentElement.lang="he";
+render();
+</script>
+
+</body>
+</html>
