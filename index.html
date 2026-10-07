@@ -90,7 +90,10 @@ li.done{opacity:.35;text-decoration:line-through}
     <button type="button" class="btn" id="reset">התחל מחדש</button>
   </div>
   <ol id="list"></ol>
+  <p class="note">האתר שולח נתוני שימוש אנונימיים, בלי שם: סוג מכשיר, הגדרה ושלב.</p>
 </div>
+
+<script src="config.js"></script>
 
 <script>
 // Raw orders pulled from the calculator (15 crop, capital). c=crop field, m=flour mill, b=bakery, h=hero's mansion, w=waterworks; token = building+new level, *n = repeated.
@@ -142,33 +145,74 @@ function summarize(s){
 }
 
 const $=id=>document.getElementById(id);
-const KEY="cropOrder.v1", STALE_DAYS=14;
-let store={settings:{tribe:"0",gold:"1",o:["50","50","50"]},progress:{}};
-try{const raw=localStorage.getItem(KEY);if(raw)store=Object.assign(store,JSON.parse(raw));}catch(e){}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}};
+const KEY1="cropOrder.v1", KEY2="cropOrder.v2", STALE_DAYS=14;
+const TRACK_URL=(window.TRACK_URL||"").trim();
+const plain=h=>h.replace(/<[^>]+>/g,"");
+let store={settings:{tribe:"0",gold:"1",o:["50","50","50"]},progress:{},id:""};
+const save=()=>{try{localStorage.setItem(KEY2,JSON.stringify(store));}catch(e){}};
+try{
+  const raw2=localStorage.getItem(KEY2);
+  if(raw2) store=Object.assign(store,JSON.parse(raw2));
+  else{ // one-time migration: old saves stored row numbers, new saves store the step text
+    const raw1=localStorage.getItem(KEY1);
+    if(raw1){const old=JSON.parse(raw1);
+      store.settings=Object.assign(store.settings,old.settings||{});
+      for(const [k,p] of Object.entries(old.progress||{})){
+        if(!D[k])continue; const steps=summarize(D[k]);
+        const done=(p.done||[]).map(i=>steps[i]&&plain(steps[i].html)).filter(Boolean);
+        if(done.length)store.progress[k]={done,t:p.t||0};
+      }}
+  }
+}catch(e){}
+if(!store.id)store.id="u"+Math.random().toString(36).slice(2,9);
+save();
 const state=store.settings;
-const cfg=()=>[state.tribe,...[$("o1").value,$("o2").value,$("o3").value].map(Number).sort((a,b)=>b-a)].join("_");
+const oasis=()=>[$("o1").value,$("o2").value,$("o3").value];
+const cfg=()=>[state.tribe,...oasis().map(Number).sort((a,b)=>b-a)].join("_");
 const prog=()=>store.progress[cfg()]||{done:[],t:0};
+let cur=[];
 
+/* ---- anonymous usage tracking ---- */
+function device(){const u=navigator.userAgent;
+  const os=/iPhone/.test(u)?"iPhone":/iPad/.test(u)?"iPad":/Android/.test(u)?"Android":/Windows/.test(u)?"Windows":/Mac/.test(u)?"Mac":"אחר";
+  const br=/SamsungBrowser/.test(u)?"Samsung":/Edg/.test(u)?"Edge":/CriOS|Chrome/.test(u)?"Chrome":/FxiOS|Firefox/.test(u)?"Firefox":/Safari/.test(u)?"Safari":"אחר";
+  const home=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone;
+  return os+" "+br+(home?" (מסך הבית)":"");}
+function cfgLabel(){const o=oasis().map(Number).sort((a,b)=>b-a);
+  return (state.tribe==="1"?"מצרי":"רגיל")+" "+o.join("/")+" ("+o.reduce((a,b)=>a+b,0)+"%) "+(state.gold==="1"?"עם זהב":"בלי זהב");}
+function send(ev,n){
+  if(!/^https:\/\//.test(TRACK_URL))return;
+  const done=new Set(prog().done), keys=cur.map(s=>plain(s.html));
+  const next=keys.find(k=>!done.has(k));
+  const body=JSON.stringify({id:store.id,ev,n:n||0,device:device(),cfg:cfgLabel(),
+    done:keys.filter(k=>done.has(k)).length,total:keys.length,next:next||"הכול סומן"});
+  try{fetch(TRACK_URL,{method:"POST",mode:"no-cors",keepalive:true,headers:{"Content-Type":"text/plain;charset=utf-8"},body}).catch(()=>{});}catch(e){}
+}
+let sendTimer=null, pendingMarks=0;
+function sendSoon(marks){pendingMarks+=marks||0;clearTimeout(sendTimer);
+  sendTimer=setTimeout(()=>{send(pendingMarks?"mark":"update",pendingMarks);pendingMarks=0;},1500);}
+
+/* ---- page ---- */
 function segInit(id,key){
   [...$(id).children].forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===state[key]));
   $(id).addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;state[key]=b.dataset.v;
-    [...$(id).children].forEach(x=>x.setAttribute("aria-pressed",x===b));save();render();});}
+    [...$(id).children].forEach(x=>x.setAttribute("aria-pressed",x===b));save();render();sendSoon(0);});}
 
 function render(){
-  state.o=[$("o1").value,$("o2").value,$("o3").value];
-  const o=state.o.map(Number);
-  $("tot").textContent=o.reduce((a,b)=>a+b,0)+"%";
-  const steps=summarize(D[cfg()]); const p=prog(); const done=new Set(p.done);
-  $("list").innerHTML=steps.map((s,i)=>`<li class="${s.b?"b":"f"}${done.has(i)?" done":""}" data-i="${i}"><span>${s.html}</span></li>`).join("")
+  state.o=oasis();
+  $("tot").textContent=state.o.map(Number).reduce((a,b)=>a+b,0)+"%";
+  cur=summarize(D[cfg()]); const p=prog(); const done=new Set(p.done);
+  let n=0;
+  $("list").innerHTML=cur.map((s,i)=>{const d=done.has(plain(s.html));if(d)n++;
+    return `<li class="${s.b?"b":"f"}${d?" done":""}" data-i="${i}"><span>${s.html}</span></li>`;}).join("")
     +`<li class="end"><span>המשיכו לבנות שדות יבול עד שלב 21</span></li>`;
-  $("count").textContent=`סימנת ${done.size} מתוך ${steps.length} שלבים`;
+  $("count").textContent=`סימנת ${n} מתוך ${cur.length} שלבים`;
   const days=p.t?Math.floor((Date.now()-p.t)/864e5):0;
-  $("stale").hidden=!(done.size&&days>=STALE_DAYS);
+  $("stale").hidden=!(n&&days>=STALE_DAYS);
   $("staleText").textContent=`הסימון האחרון היה לפני ${days} ימים. מתחיל שרת חדש?`;
   disarm();
 }
-function clearProgress(){delete store.progress[cfg()];save();render();}
+function clearProgress(){delete store.progress[cfg()];save();render();send("reset");}
 
 let armTimer=null;
 function disarm(){clearTimeout(armTimer);armTimer=null;$("reset").textContent="התחל מחדש";$("reset").classList.remove("warn");}
@@ -181,15 +225,17 @@ $("reset").addEventListener("click",()=>{
 $("staleReset").addEventListener("click",clearProgress);
 
 $("list").addEventListener("click",e=>{const li=e.target.closest("li");if(!li||li.classList.contains("end"))return;
-  const i=+li.dataset.i, k=cfg(); const p=store.progress[k]||{done:[],t:0};
-  p.done=p.done.includes(i)?p.done.filter(x=>x!==i):[...p.done,i]; p.t=Date.now();
+  const key=plain(cur[+li.dataset.i].html), k=cfg(); const p=store.progress[k]||{done:[],t:0};
+  const marking=!p.done.includes(key);
+  p.done=marking?[...p.done,key]:p.done.filter(x=>x!==key); p.t=Date.now();
   if(p.done.length)store.progress[k]=p; else delete store.progress[k];
-  save();render();});
+  save();render();sendSoon(marking?1:0);});
 
-["o1","o2","o3"].forEach((id,i)=>{$(id).value=state.o[i]||"50";$(id).addEventListener("change",()=>{save();render();});});
+["o1","o2","o3"].forEach((id,i)=>{$(id).value=state.o[i]||"50";$(id).addEventListener("change",()=>{save();render();sendSoon(0);});});
 segInit("tribe","tribe");segInit("gold","gold");
 document.documentElement.setAttribute("dir","rtl");document.documentElement.lang="he";
 render();
+send("open");
 </script>
 
 </body>
