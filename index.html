@@ -43,6 +43,12 @@ li.f{color:var(--fg)}
 li.b{font-weight:700;color:var(--accent);box-shadow:inset -3px 0 0 var(--accent)}
 li.end{color:var(--muted);cursor:default}
 li.done{opacity:.35;text-decoration:line-through}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.count{font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.btn{font:inherit;font-size:.88rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:8px;padding:6px 14px;cursor:pointer}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.warn{border-color:var(--accent);color:var(--accent);font-weight:700}
+.stale{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;background:var(--accent-soft);border-radius:10px;padding:10px 14px;font-size:.9rem}
 </style>
 </head>
 <body>
@@ -50,7 +56,7 @@ li.done{opacity:.35;text-decoration:line-through}
 <div class="wrap" dir="rtl" lang="he">
   <header>
     <h1>סדר בניית בירת קרופר 15</h1>
-    <p class="sub">לפי מחשבון Cropcalc T4.4. לחיצה על שלב מסמנת אותו כבוצע.</p>
+    <p class="sub">לפי מחשבון Cropcalc T4.4. לחיצה על שלב מסמנת אותו כבוצע, והסימון נשמר במכשיר שלך.</p>
   </header>
 
   <section class="controls" aria-label="הגדרות">
@@ -75,6 +81,14 @@ li.done{opacity:.35;text-decoration:line-through}
     <p class="note">בונוס זהב לא משנה את סדר הבנייה, רק את קצב התפוקה.</p>
   </section>
 
+  <div class="stale" id="stale" hidden>
+    <span id="staleText"></span>
+    <button type="button" class="btn" id="staleReset">התחל מחדש</button>
+  </div>
+  <div class="bar">
+    <span class="count" id="count"></span>
+    <button type="button" class="btn" id="reset">התחל מחדש</button>
+  </div>
   <ol id="list"></ol>
 </div>
 
@@ -128,19 +142,52 @@ function summarize(s){
 }
 
 const $=id=>document.getElementById(id);
-const state={tribe:"0",gold:"1"};
-function segInit(id,key){$(id).addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;state[key]=b.dataset.v;
-  [...$(id).children].forEach(x=>x.setAttribute("aria-pressed",x===b));render();});}
+const KEY="cropOrder.v1", STALE_DAYS=14;
+let store={settings:{tribe:"0",gold:"1",o:["50","50","50"]},progress:{}};
+try{const raw=localStorage.getItem(KEY);if(raw)store=Object.assign(store,JSON.parse(raw));}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}};
+const state=store.settings;
+const cfg=()=>[state.tribe,...[$("o1").value,$("o2").value,$("o3").value].map(Number).sort((a,b)=>b-a)].join("_");
+const prog=()=>store.progress[cfg()]||{done:[],t:0};
+
+function segInit(id,key){
+  [...$(id).children].forEach(x=>x.setAttribute("aria-pressed",x.dataset.v===state[key]));
+  $(id).addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;state[key]=b.dataset.v;
+    [...$(id).children].forEach(x=>x.setAttribute("aria-pressed",x===b));save();render();});}
+
 function render(){
-  const o=[$("o1").value,$("o2").value,$("o3").value].map(Number).sort((a,b)=>b-a);
+  state.o=[$("o1").value,$("o2").value,$("o3").value];
+  const o=state.o.map(Number);
   $("tot").textContent=o.reduce((a,b)=>a+b,0)+"%";
-  const steps=summarize(D[[state.tribe,...o].join("_")]);
-  $("list").innerHTML=steps.map(s=>`<li class="${s.b?"b":"f"}"><span>${s.html}</span></li>`).join("")
+  const steps=summarize(D[cfg()]); const p=prog(); const done=new Set(p.done);
+  $("list").innerHTML=steps.map((s,i)=>`<li class="${s.b?"b":"f"}${done.has(i)?" done":""}" data-i="${i}"><span>${s.html}</span></li>`).join("")
     +`<li class="end"><span>המשיכו לבנות שדות יבול עד שלב 21</span></li>`;
+  $("count").textContent=`סימנת ${done.size} מתוך ${steps.length} שלבים`;
+  const days=p.t?Math.floor((Date.now()-p.t)/864e5):0;
+  $("stale").hidden=!(done.size&&days>=STALE_DAYS);
+  $("staleText").textContent=`הסימון האחרון היה לפני ${days} ימים. מתחיל שרת חדש?`;
+  disarm();
 }
+function clearProgress(){delete store.progress[cfg()];save();render();}
+
+let armTimer=null;
+function disarm(){clearTimeout(armTimer);armTimer=null;$("reset").textContent="התחל מחדש";$("reset").classList.remove("warn");}
+$("reset").addEventListener("click",()=>{
+  if(!prog().done.length)return;
+  if(armTimer){clearProgress();return;}
+  $("reset").textContent="למחוק את כל הסימונים? לחץ שוב";$("reset").classList.add("warn");
+  armTimer=setTimeout(disarm,4000);
+});
+$("staleReset").addEventListener("click",clearProgress);
+
+$("list").addEventListener("click",e=>{const li=e.target.closest("li");if(!li||li.classList.contains("end"))return;
+  const i=+li.dataset.i, k=cfg(); const p=store.progress[k]||{done:[],t:0};
+  p.done=p.done.includes(i)?p.done.filter(x=>x!==i):[...p.done,i]; p.t=Date.now();
+  if(p.done.length)store.progress[k]=p; else delete store.progress[k];
+  save();render();});
+
+["o1","o2","o3"].forEach((id,i)=>{$(id).value=state.o[i]||"50";$(id).addEventListener("change",()=>{save();render();});});
 segInit("tribe","tribe");segInit("gold","gold");
-["o1","o2","o3"].forEach(id=>$(id).addEventListener("change",render));
-$("list").addEventListener("click",e=>{const li=e.target.closest("li");if(li&&!li.classList.contains("end"))li.classList.toggle("done");});
 document.documentElement.setAttribute("dir","rtl");document.documentElement.lang="he";
 render();
 </script>
