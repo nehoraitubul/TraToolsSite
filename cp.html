@@ -5,16 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>סולם נקודות תרבות</title>
 <link rel="icon" href="favicon.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Heebo:wght@400;500;700&display=swap">
 <style>
 :root {
-  --bg: #f3f5f1; --surface: #ffffff; --fg: #1e2a22; --muted: #5d6b62; --line: #d7ddd5;
-  --accent: #2f6f45; --accent-soft: #e2efe5; --cp: #a86b12; --cp-soft: #f6ead3; --warn: #9a3a2c; --warn-soft: #f8e4df;
-  --display: "Frank Ruhl Libre", "Times New Roman", serif; --body: "Heebo", "Segoe UI", Arial, sans-serif;
+  --bg: #f7f7f8; --surface: #ffffff; --fg: #1f2329; --muted: #5f6570; --line: #dfe2e7; --accent: #2f5d9a; --accent-soft: #e8eef7; --cp: #9a5b00; --cp-soft: #fbefd9; --warn: #a3332a; --warn-soft: #fbe5e2; --hero: #5b3f9e; --hero-soft: #efe9fb;
+  --display: Arial, Helvetica, sans-serif; --body: Arial, Helvetica, sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root {
-  --bg: #141a16; --surface: #1c2420; --fg: #e6ebe4; --muted: #9aa89f; --line: #2e3a33;
-  --accent: #7cc28a; --accent-soft: #223a2a; --cp: #e0a443; --cp-soft: #3a2d14; --warn: #e08a7a; --warn-soft: #3d221d; color-scheme: dark; } }
+  --bg: #15171a; --surface: #1d2024; --fg: #e6e8eb; --muted: #9aa1ab; --line: #30353c; --accent: #8fb6ea; --accent-soft: #223047; --cp: #f0b24a; --cp-soft: #3a2c12; --warn: #ef8f80; --warn-soft: #3d221d; --hero: #b9a6f0; --hero-soft: #2c2448; color-scheme: dark; } }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.45; direction: rtl; padding-inline: 16px; padding-block: 20px 60px; }
@@ -40,17 +37,22 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .levels input { width: 4.2em; padding: 3px 5px; text-align: center; }
 table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .9rem; }
 th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
-th { font-weight: 500; color: var(--muted); font-size: .8rem; position: sticky; top: 42px; background: var(--surface); z-index: 1; }
+th { font-weight: 700; color: var(--fg); font-size: .8rem; background: var(--accent-soft); }
 td.n, th.n { text-align: left; }
 tr.cur td { background: var(--accent-soft); font-weight: 500; }
 tr.done td { color: var(--muted); opacity: .55; }
 tr.best td:first-child { border-inline-start: 3px solid var(--cp); }
 .eff { color: var(--cp); font-weight: 500; }
 .tbl { overflow-x: auto; }
-.nav { position: sticky; top: 0; z-index: 3; background: var(--bg); padding: 8px 0; display: flex; flex-wrap: wrap; gap: 5px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
-.nav a { font-size: .8rem; padding: 3px 9px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--fg); text-decoration: none; }
-.nav a:hover { background: var(--accent-soft); }
-.bld { margin-bottom: 22px; scroll-margin-top: 60px; }
+.nav { z-index: 5; background: var(--surface); padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 6px; border: 2px solid var(--accent); border-radius: 10px; margin-bottom: 14px; box-shadow: 0 4px 10px rgba(0,0,0,.08); }
+.nav::before { content: 'קפוץ למבנה:'; font-weight: 700; font-size: .85rem; align-self: center; margin-inline-end: 4px; }
+.nav a { font-size: .85rem; font-weight: 700; padding: 5px 11px; border-radius: 999px; background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent); text-decoration: none; }
+.nav a:hover { background: var(--accent); color: #fff; }
+.bld { margin-bottom: 22px; scroll-margin-top: 120px; }
+.jump { position: sticky; top: 56px; z-index: 6; display: flex; gap: 8px; align-items: center; background: var(--accent); color: #fff; padding: 8px 12px; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,.12); }
+.jump b { font-size: .9rem; }
+.jump select { flex: 1; min-width: 0; font-weight: 700; background: var(--surface); }
+.jump button { background: var(--surface); font-weight: 700; }
 .bld .head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
 .bld .head .note { font-size: .82rem; }
 .rank td.name { font-weight: 500; }
@@ -58,10 +60,16 @@ tr.best td:first-child { border-inline-start: 3px solid var(--cp); }
 .chip { font-size: .8rem; padding: 2px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
 .chip.c { background: var(--cp-soft); color: var(--cp); }
 .hidden { display: none !important; }
+.sitenav { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 0; margin: -20px 0 16px; background: var(--bg); border-bottom: 2px solid var(--line); }
+.sitenav a { font-size: .95rem; font-weight: 700; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-decoration: none; }
+.sitenav a:hover { border-color: var(--accent); color: var(--accent); }
+.sitenav a[aria-current="page"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
 </style>
 </head>
 <body>
 <div class="wrap">
+  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html" aria-current="page">סולם נק"ת</a></nav>
   <h1>סולם נקודות תרבות</h1>
   <p class="sub">כל מבנה, רמה 1 עד 20: כמה עולה, כמה נק"ת ליום מוסיף, וכמה משאבים משלמים על כל נק"ת. הזן את הרמות שלך (או הדבק את מסך המבנים) וקבל את השדרוגים הכי משתלמים ממצבך הנוכחי. נתוני Travian Legends 4.6, x1.</p>
 
@@ -93,9 +101,10 @@ tr.best td:first-child { border-inline-start: 3px solid var(--cp); }
   </div>
 
   <div class="nav" id="nav"></div>
+  <div class="jump"><b>קפוץ למבנה</b><select id="jumpSel" aria-label="קפוץ למבנה"></select><button id="toTop" type="button">↑ למעלה</button></div>
   <div id="tables"></div>
 
-  <p class="note" style="margin-top:24px">גרסה 2026-10-11 · <a href="index.html">חזרה לכלים</a> · <a href="simulator.html">מה לבנות עכשיו</a></p>
+  <p class="note" style="margin-top:24px">גרסה 2026-10-11</p>
 </div>
 
 <script>// Travian paste importer: recognises pasted page HTML / text and extracts the village state.
@@ -416,6 +425,8 @@ function applyBuilt(o) {
 function renderTables() {
   const keys = visibleKeys();
   const days = Math.max(1, +$('days').value || 7);
+  const navList = keys.concat($('showFields').checked ? FIELD_KEYS : []);
+  $('jumpSel').innerHTML = '<option value="">בחר...</option>' + navList.map(k => `<option value="${k}">${NAMES[k] || k}</option>`).join('');
   $('nav').innerHTML = keys.map(k => `<a href="#b-${k}">${NAMES[k] || k}</a>`).join('') + ($('showFields').checked ? FIELD_KEYS.map(k => `<a href="#b-${k}">${NAMES[k]}</a>`).join('') : '');
   const list = keys.concat($('showFields').checked ? FIELD_KEYS : []);
   let h = '';
@@ -453,6 +464,8 @@ $('btnImport').addEventListener('click', () => {
   $('paste').value = ''; save(); renderAll(true);
 });
 ['tribe', 'days', 'showFields', 'fromMine', 'showRare'].forEach(id => $(id).addEventListener('change', () => { save(); renderAll(true); }));
+$('jumpSel').addEventListener('change', e => { const el = document.getElementById('b-' + e.target.value); if (el) el.scrollIntoView({ behavior: 'smooth' }); e.target.value = ''; });
+$('toTop').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 load(); renderAll(true);
 </script>
 </body>

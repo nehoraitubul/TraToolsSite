@@ -5,18 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>מה לבנות עכשיו</title>
 <link rel="icon" href="favicon.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Heebo:wght@400;500;700&display=swap">
 <style>
 :root {
-  --bg: #f3f5f1; --surface: #ffffff; --fg: #1e2a22; --muted: #5d6b62; --line: #d7ddd5;
-  --accent: #2f6f45; --accent-soft: #e2efe5; --cp: #a86b12; --cp-soft: #f6ead3;
-  --warn: #9a3a2c; --warn-soft: #f8e4df; --hero: #4a4f9c; --hero-soft: #e4e5f6;
-  --display: "Frank Ruhl Libre", "Times New Roman", serif; --body: "Heebo", "Segoe UI", Arial, sans-serif;
+  --bg: #f7f7f8; --surface: #ffffff; --fg: #1f2329; --muted: #5f6570; --line: #dfe2e7; --accent: #2f5d9a; --accent-soft: #e8eef7; --cp: #9a5b00; --cp-soft: #fbefd9; --warn: #a3332a; --warn-soft: #fbe5e2; --hero: #5b3f9e; --hero-soft: #efe9fb;
+  --display: Arial, Helvetica, sans-serif; --body: Arial, Helvetica, sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root {
-  --bg: #141a16; --surface: #1c2420; --fg: #e6ebe4; --muted: #9aa89f; --line: #2e3a33;
-  --accent: #7cc28a; --accent-soft: #223a2a; --cp: #e0a443; --cp-soft: #3a2d14;
-  --warn: #e08a7a; --warn-soft: #3d221d; --hero: #a9adf0; --hero-soft: #262a52; color-scheme: dark; } }
+  --bg: #15171a; --surface: #1d2024; --fg: #e6e8eb; --muted: #9aa1ab; --line: #30353c; --accent: #8fb6ea; --accent-soft: #223047; --cp: #f0b24a; --cp-soft: #3a2c12; --warn: #ef8f80; --warn-soft: #3d221d; --hero: #b9a6f0; --hero-soft: #2c2448; color-scheme: dark; } }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5; direction: rtl; padding-inline: 16px; padding-block: 20px 60px; }
@@ -90,6 +85,11 @@ details > summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
 .fieldsedit input { width: 100%; padding: 4px 2px; text-align: center; }
 .fieldsedit .tt { grid-column: 1 / -1; font-size: .8rem; color: var(--muted); margin-top: 4px; }
 .hidden { display: none !important; }
+.sitenav { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 0; margin: -20px 0 16px; background: var(--bg); border-bottom: 2px solid var(--line); }
+.sitenav a { font-size: .95rem; font-weight: 700; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-decoration: none; }
+.sitenav a:hover { border-color: var(--accent); color: var(--accent); }
+.sitenav a[aria-current="page"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
 @media (max-width: 640px) {
   .hdr { display: none; }
   .rowx { grid-template-columns: 90px 1fr; grid-template-areas: "t a" "t nums"; row-gap: 2px; }
@@ -103,6 +103,7 @@ details > summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
 </head>
 <body>
 <div class="wrap">
+  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html" aria-current="page">מה לבנות עכשיו</a><a href="cp.html">סולם נק"ת</a></nav>
   <h1>מה לבנות עכשיו</h1>
   <p class="sub">הדבק את דפי המשחק, לחץ "חשב", וקבל את הצעדים הבאים עד הכפר השני. המודל מניח זהב בלי הגבלה (NPC + סיום מיידי, חוץ ממגורים), +25% ייצור, בלי העברות בין כפרים, ואפס לוט עתידי: כל מה שנכנס, תדביק שוב ותחשב מחדש.</p>
 
@@ -152,7 +153,7 @@ details > summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
     <p class="note" style="margin-top:14px">זמנים משוערים לפי שעון השרת. "המתנה" = זמן שחיכינו למשאבים. לחיצה על שורה פותחת פרטים ואת המשימות שהיא סוגרת. אחרי שנכנס לוט או שסטית מהתוכנית: הדבק שוב וחשב.</p>
   </div>
 
-  <p class="note" style="margin-top:24px">גרסה 2026-10-11 · <a href="index.html">חזרה לכלים</a></p>
+  <p class="note" style="margin-top:24px">גרסה 2026-10-11</p>
 </div>
 
 <script>// Travian paste importer: recognises pasted page HTML / text and extracts the village state.
