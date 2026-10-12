@@ -413,7 +413,9 @@ function nextOptions() {
     else consider(k, L[k] || 0, NAMES[k] || k, 0);
   }
   if ($('showFields').checked) { const ft = fieldTypes(); for (let i = 0; i < 18; i++) consider(FIELD_KEYS[ft[i]], L['f' + i] || 0, `${NAMES[FIELD_KEYS[ft[i]]]} (משבצת ${i + 1})`, i); }
-  out.sort((a, b) => (a.rankPrice - b.rankPrice) || (a.key === b.key && a.idx === b.idx ? a.seq - b.seq : a.resPerCp - b.resPerCp));
+  // total order: price, then building (key + instance), then step order — never the step's own price
+  out.forEach(o => { o.grp = `${o.key}#${o.idx}`; });
+  out.sort((a, b) => (a.rankPrice - b.rankPrice) || (a.grp < b.grp ? -1 : a.grp > b.grp ? 1 : 0) || (a.seq - b.seq));
   return out;
 }
 
