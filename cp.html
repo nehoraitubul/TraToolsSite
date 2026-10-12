@@ -87,7 +87,7 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
 </head>
 <body>
 <div class="wrap">
-  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html" aria-current="page">סולם נק"ת</a></nav>
+  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html" aria-current="page">סולם נק"ת</a><a href="transfers.html">משלוחים</a><span id="syncbar"></span></nav>
   <h1>סולם נקודות תרבות</h1>
   <p class="sub">כל מבנה, רמה 1 עד 20: כמה עולה, כמה נק"ת ליום מוסיף, וכמה משאבים משלמים על כל נק"ת. הזן את הרמות שלך (או הדבק את מסך המבנים) וקבל את השדרוגים הכי משתלמים ממצבך הנוכחי. נתוני Travian Legends 4.6, x1.</p>
 
@@ -138,6 +138,8 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
   <p class="note" style="margin-top:24px">גרסה 2026-10-12</p>
 </div>
 
+<script src="config.js"></script>
+<script src="sync.js"></script>
 <script>// Travian paste importer: recognises pasted page HTML / text and extracts the village state.
 // Plain script (no modules) so it can be inlined in the tool page and tested in Node.
 (function (root) {
@@ -211,6 +213,8 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
     const wc = html.match(/class="warehouse">[\s\S]*?class="value">\s*([^<]+)/), gc = html.match(/class="granary">[\s\S]*?class="value">\s*([^<]+)/);
     if (wc && gc) out.cap = { W: num(wc[1]), G: num(gc[1]) };
     const fc = html.match(/id="stockBarFreeCrop"[^>]*>\s*([^<]+)/); if (fc) out.freeCrop = num(fc[1]);
+    const pi = html.indexOf('id="production"');
+    if (pi >= 0) { const seg = html.slice(pi, pi + 8000); const pr = []; for (let i = 1; i <= 4; i++) { const r = seg.match(new RegExp(`<i class="r${i}"[\\s\\S]*?class="num"[^>]*>\\s*([^<]+)<`)); pr.push(r ? num(r[1]) : null); } if (pr.every(v => v != null)) out.prod = pr; }
     out.queue = parseQueue(html);
     Object.assign(out, serverInfo(html));
     const vn = html.match(/class="listEntry village active"[\s\S]*?class="name"[^>]*>([^<]+)</) || html.match(/id="villageNameField"[^>]*>\s*([^<]+)/);
@@ -418,7 +422,7 @@ function load() {
   $('showFields').checked = S.showFields !== false; $('fromMine').checked = S.fromMine !== false; $('showRare').checked = !!S.showRare;
   switchVillage(start, false);
 }
-function save() { try { S.showFields = $('showFields').checked; S.fromMine = $('fromMine').checked; S.showRare = $('showRare').checked; if (V) { V.tribe = $('tribe').value; V.noCranny = $('noCranny').checked; V.FT = FT; } localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function save() { try { S.showFields = $('showFields').checked; S.fromMine = $('fromMine').checked; S.showRare = $('showRare').checked; if (V) { V.tribe = $('tribe').value; V.noCranny = $('noCranny').checked; V.FT = FT; } localStorage.setItem(KEY, JSON.stringify(S)); if (window.TSync) TSync.touch(KEY); } catch (e) {} }
 function switchVillage(id, render = true) {
   if (V) { V.tribe = $('tribe').value; V.noCranny = $('noCranny').checked; V.FT = FT; }
   V = S.villages[id]; S.cur = id; L = V.L; FT = V.FT;
@@ -426,7 +430,7 @@ function switchVillage(id, render = true) {
   $('vName').value = V.name; $('vRole').value = V.role || 'feeder';
   if (render) { save(); renderAll(true); }
 }
-function ensureVillage(did, name) { if (!S.villages[did]) { S.villages[did] = newVillage(did, name); S.order.push(did); } else if (name) S.villages[did].name = name; return S.villages[did]; }
+function ensureVillage(did, name, xy) { if (!S.villages[did]) { S.villages[did] = newVillage(did, name); S.order.push(did); } else if (name) S.villages[did].name = name; if (xy && xy.x != null) { S.villages[did].x = xy.x; S.villages[did].y = xy.y; } return S.villages[did]; }
 function renderTabs() {
   let h = S.order.map(id => { const v = S.villages[id]; return `<button type="button" class="tab${id === S.cur ? ' active' : ''}${id === S.def ? ' def' : ''}" data-v="${id}"><span dir="auto">${esc(v.name)}</span></button>`; }).join('');
   h += `<button type="button" class="tab add" id="tabAdd">+ כפר ידני</button>`;
@@ -697,9 +701,10 @@ $('btnImport').addEventListener('click', () => {
     // tabs for every village in the sidebar; the levels go to the village that was active in the game
     // a manual tab (no id yet) becomes the pasted village instead of a duplicate tab
     if (r.activeDid && !S.villages[r.activeDid] && !/^\d+$/.test(S.cur)) { const old = S.cur; V.id = r.activeDid; S.villages[r.activeDid] = V; delete S.villages[old]; S.order = S.order.map(x => x === old ? r.activeDid : x); if (S.def === old) S.def = r.activeDid; S.cur = r.activeDid; }
-    if (r.villages && r.villages.length) { for (const v of r.villages) ensureVillage(v.did, v.name); }
+    if (r.villages && r.villages.length) { for (const v of r.villages) ensureVillage(v.did, v.name, v); }
     const target = r.activeDid && S.villages[r.activeDid] ? r.activeDid : S.cur;
     if (target !== S.cur) switchVillage(target, false);
+    if (r.stock) V.stock = r.stock; if (r.cap) V.cap = r.cap; if (r.prod) V.prod = r.prod; if (r.freeCrop != null) V.freeCrop = r.freeCrop; if (r.serverEpoch) V.at = r.serverEpoch;
     if (r.type === 'dorf2') { for (const k in r.buildings) L[k] = r.buildings[k]; L.crannies = r.crannies.slice(); if (r.tribe) $('tribe').value = r.tribe; msg.push(`${esc(V.name)}: מבנים ${Object.keys(r.buildings).length}`); }
     if (r.type === 'dorf1' && r.fields.length === 18) { FT = r.fields.map(f => f.t); V.FT = FT; r.fields.forEach((f, i) => { L['f' + i] = f.l; }); if (r.tribe) $('tribe').value = r.tribe; msg.push(`${esc(V.name)}: 18 שדות`); }
   }

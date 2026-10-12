@@ -103,7 +103,7 @@ details > summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
 </head>
 <body>
 <div class="wrap">
-  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html" aria-current="page">מה לבנות עכשיו</a><a href="cp.html">סולם נק"ת</a></nav>
+  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html" aria-current="page">מה לבנות עכשיו</a><a href="cp.html">סולם נק"ת</a><a href="transfers.html">משלוחים</a><span id="syncbar"></span></nav>
   <h1>מה לבנות עכשיו</h1>
   <p class="sub">הדבק את דפי המשחק, לחץ "חשב", וקבל את הצעדים הבאים עד הכפר השני. המודל מניח זהב בלי הגבלה (NPC + סיום מיידי, חוץ ממגורים), +25% ייצור, בלי העברות בין כפרים, ואפס לוט עתידי: כל מה שנכנס, תדביק שוב ותחשב מחדש.</p>
 
@@ -153,9 +153,11 @@ details > summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
     <p class="note" style="margin-top:14px">זמנים משוערים לפי שעון השרת. "המתנה" = זמן שחיכינו למשאבים. לחיצה על שורה פותחת פרטים ואת המשימות שהיא סוגרת. אחרי שנכנס לוט או שסטית מהתוכנית: הדבק שוב וחשב.</p>
   </div>
 
-  <p class="note" style="margin-top:24px">גרסה 2026-10-11</p>
+  <p class="note" style="margin-top:24px">גרסה 2026-10-12</p>
 </div>
 
+<script src="config.js"></script>
+<script src="sync.js"></script>
 <script>// Travian paste importer: recognises pasted page HTML / text and extracts the village state.
 // Plain script (no modules) so it can be inlined in the tool page and tested in Node.
 (function (root) {
@@ -200,6 +202,22 @@ details > summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
     return out;
   }
 
+  // sidebar village list: [{did, name, active, x, y}] + activeDid
+  function parseVillages(html) {
+    const out = { villages: [], activeDid: null };
+    const re = /<div class="listEntry village( active)?" data-did="(\d+)"/g; let m;
+    while ((m = re.exec(html))) {
+      const seg = html.slice(m.index, m.index + 2000).replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, '');
+      const n = seg.match(/class="name"[^>]*>([^<]+)</);
+      const x = seg.match(/coordinateX"[^>]*>[^\d−-]*([−-]?\d+)/), y = seg.match(/coordinateY"[^>]*>[^\d−-]*([−-]?\d+)/);
+      const v = { did: m[2], name: n ? clean(n[1]).trim() : m[2], active: !!m[1] };
+      if (x && y) { v.x = parseInt(x[1].replace('−', '-'), 10); v.y = parseInt(y[1].replace('−', '-'), 10); }
+      if (!out.villages.some(o => o.did === v.did)) out.villages.push(v);
+      if (v.active) out.activeDid = v.did;
+    }
+    return out;
+  }
+
   function parseDorf1(html) {
     const out = { type: 'dorf1', fields: [], stock: null, cap: null, queue: [] };
     const re = /<a[^>]*href="\/?build\.php\?id=(\d+)"[^>]*data-aid="(\d+)"[^>]*data-gid="(\d)"[^>]*>\s*<div class="labelLayer">\s*(\d+)\s*<\/div>/g;
@@ -213,10 +231,13 @@ details > summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
     const wc = html.match(/class="warehouse">[\s\S]*?class="value">\s*([^<]+)/), gc = html.match(/class="granary">[\s\S]*?class="value">\s*([^<]+)/);
     if (wc && gc) out.cap = { W: num(wc[1]), G: num(gc[1]) };
     const fc = html.match(/id="stockBarFreeCrop"[^>]*>\s*([^<]+)/); if (fc) out.freeCrop = num(fc[1]);
+    const pi = html.indexOf('id="production"');
+    if (pi >= 0) { const seg = html.slice(pi, pi + 8000); const pr = []; for (let i = 1; i <= 4; i++) { const r = seg.match(new RegExp(`<i class="r${i}"[\\s\\S]*?class="num"[^>]*>\\s*([^<]+)<`)); pr.push(r ? num(r[1]) : null); } if (pr.every(v => v != null)) out.prod = pr; }
     out.queue = parseQueue(html);
     Object.assign(out, serverInfo(html));
     const vn = html.match(/class="listEntry village active"[\s\S]*?class="name"[^>]*>([^<]+)</) || html.match(/id="villageNameField"[^>]*>\s*([^<]+)/);
     if (vn) out.villageName = clean(vn[1]).trim();
+    Object.assign(out, parseVillages(html));
     return out;
   }
 
@@ -257,6 +278,7 @@ details > summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
     out.queue = parseQueue(html);
     Object.assign(out, serverInfo(html));
     const vn = html.match(/class="listEntry village active"[\s\S]*?class="name"[^>]*>([^<]+)</); if (vn) out.villageName = clean(vn[1]).trim();
+    Object.assign(out, parseVillages(html));
     return out;
   }
 
@@ -382,7 +404,7 @@ details > summary { cursor: pointer; color: var(--muted); padding: 8px 0; }
     return chunks.map(parse).filter(r => r.type !== 'unknown');
   }
 
-  const api = { detect, parse, parseAll, parseDorf1, parseDorf2, parseHeroAttr, parseHeroInv, parseCp, parseTroops, parseReports, GID, HE, TRIBE, num, clean };
+  const api = { detect, parse, parseAll, parseDorf1, parseDorf2, parseVillages, parseHeroAttr, parseHeroInv, parseCp, parseTroops, parseReports, GID, HE, TRIBE, num, clean };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.TImport = api;
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
@@ -1394,7 +1416,7 @@ const $ = id => document.getElementById(id);
 const KEY = 'tt-sim-state-v1';
 let S = null;   // {tribe, startEpoch, utcOff, fields[{t,l}], b{}, crannies[], stock, bag, cp, cpvImported, hero{level,xp,pointsRes}, troops, settlers, thFreeH, resBusyH, celebrationsHeld, raid{fill,lootPerHour}, asOf, villagesOwned}
 function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.fields) S = s; } catch (e) {} }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); if (window.TSync) TSync.touch(KEY); } catch (e) {} }
 function freshState(tribe, counts) {
   const fields = []; counts.forEach((n, t) => { for (let i = 0; i < n; i++) fields.push({ t, l: 0 }); });
   return { tribe, fields, b: { main_building: 1 }, crannies: [], stock: 3000, bag: 0, cp: 500, hero: { level: 0, xp: 0, pointsRes: 4 }, troops: 0, settlers: 0, thFreeH: 0, resBusyH: 0, celebrationsHeld: 0, raid: { fill: null, lootPerHour: 0 }, asOf: null, villagesOwned: 1, startEpoch: S?.startEpoch ?? null, utcOff: S?.utcOff ?? 1 };

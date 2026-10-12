@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>משלוחים לכפר חדש</title>
+<link rel="icon" href="favicon.png">
+<style>
+:root {
+  --bg: #f7f7f8; --surface: #ffffff; --fg: #1f2329; --muted: #5f6570; --line: #dfe2e7; --accent: #2f5d9a; --accent-soft: #e8eef7; --cp: #9a5b00; --cp-soft: #fbefd9; --warn: #a3332a; --warn-soft: #fbe5e2; --ok: #2b7a3b; --ok-soft: #e6f4e8;
+  --body: Arial, Helvetica, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #15171a; --surface: #1d2024; --fg: #e6e8eb; --muted: #9aa1ab; --line: #30353c; --accent: #8fb6ea; --accent-soft: #223047; --cp: #f0b24a; --cp-soft: #3a2c12; --warn: #ef8f80; --warn-soft: #3d221d; --ok: #7fd48f; --ok-soft: #1f3a25; color-scheme: dark; } }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.45; direction: rtl; padding-inline: 16px; padding-block: 20px 60px; }
+.wrap { max-width: 980px; margin: 0 auto; }
+h1 { font-weight: 700; font-size: 1.9rem; margin: 0 0 2px; }
+h2 { font-weight: 500; font-size: 1.25rem; margin: 0 0 8px; }
+h3 { font-weight: 500; font-size: 1.1rem; margin: 14px 0 4px; }
+.sub { color: var(--muted); margin: 0 0 14px; max-width: 70ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+.row2 { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; }
+label.f { display: flex; flex-direction: column; gap: 3px; font-size: .85rem; color: var(--muted); }
+input, select, button { font: inherit; color: var(--fg); }
+input, select { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+input[type=number] { width: 6.5em; font-variant-numeric: tabular-nums; }
+input[type=range] { width: 14em; }
+button { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.note { color: var(--muted); font-size: .85rem; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .9rem; }
+th, td { padding: 5px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th { font-weight: 700; font-size: .8rem; background: var(--accent-soft); }
+td.n, th.n { text-align: left; }
+tr.best td { background: var(--ok-soft); font-weight: 700; }
+.tbl { overflow-x: auto; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.chip { font-size: .8rem; padding: 2px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.chip.c { background: var(--cp-soft); color: var(--cp); }
+.chip.w { background: var(--warn-soft); color: var(--warn); }
+.chip.g { background: var(--ok-soft); color: var(--ok); }
+.big { font-size: 1.15rem; font-weight: 700; }
+.send { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0; }
+.send div { background: var(--accent-soft); border-radius: 8px; padding: 8px; text-align: center; }
+.send b { display: block; font-size: 1.2rem; }
+.send small { color: var(--muted); }
+.verdict { padding: 10px 12px; border-radius: 8px; margin: 8px 0; font-weight: 500; }
+.verdict.yes { background: var(--ok-soft); color: var(--ok); } .verdict.no { background: var(--warn-soft); color: var(--warn); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.hidden { display: none !important; }
+.sitenav { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 0; margin: -20px 0 16px; background: var(--bg); border-bottom: 2px solid var(--line); }
+.sitenav a { font-size: .95rem; font-weight: 700; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); text-decoration: none; }
+.sitenav a:hover { border-color: var(--accent); color: var(--accent); }
+.sitenav a[aria-current="page"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+@media (max-width: 480px) { th, td { padding: 4px 5px; font-size: .82rem; } body { font-size: 14px; } .send { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html">סולם נק"ת</a><a href="transfers.html" aria-current="page">משלוחים</a><span id="syncbar"></span></nav>
+  <h1>משלוחים לכפר חדש</h1>
+  <p class="sub">כמה לשלוח מהקרופר לכפר חדש, מתי, ועד מתי – לפי סוחרים, מרחק, מחסן ואסם של המקבל, ולילה בלי מגע. הכפרים והנתונים מגיעים מההדבקות בדף <a href="cp.html">סולם נק"ת</a> (מסך ראשי + מסך מבנים של כל כפר).</p>
+
+  <div class="card">
+    <div class="row2">
+      <label class="f">שולח (הקרופר)<select id="from" dir="auto"></select></label>
+      <label class="f">מקבל (הכפר החדש)<select id="to" dir="auto"></select></label>
+      <label class="f">משרד סחר אצל השולח<input type="number" id="toLevel" min="0" max="20" value="0"></label>
+      <label class="f">אני נוגע במשחק כל (שעות)<input type="number" id="visitH" min="0.5" max="12" step="0.5" value="1"></label>
+      <label class="f">לילה בלי מגע (שעות)<input type="number" id="nightH" min="0" max="14" step="0.5" value="7"></label>
+      <label class="f">הולך לישון ב-<input type="time" id="bed" value="23:30"></label>
+      <label class="f">איך שולחים<select id="mode"><option value="route">נתיב מסחר קבוע (כל שעה)</option><option value="manual">ידני בכל ביקור + מנה לפני השינה</option></select></label>
+    </div>
+    <div class="row2" style="margin-top:8px">
+      <label class="f">אחוז מהייצור של הפידר שחוזר לקרופר כשהוא גמור<input type="number" id="ret" min="0" max="100" value="80"></label>
+      <label class="f">נתח מייצור הקרופר שהולך לכפר החדש<span style="display:flex;gap:8px;align-items:center"><input type="range" id="share" min="0" max="100" step="5" value="30"><b id="shareLbl">30%</b><button type="button" id="shareAuto" class="small">מומלץ</button></span></label>
+    </div>
+    <div id="dataWarn" class="note" style="margin-top:8px"></div>
+  </div>
+
+  <div id="out"></div>
+
+  <details class="card"><summary><b>נתוני הכפרים כפי שהדף מבין אותם</b> <span class="note">(לעריכה ידנית אם משהו חסר)</span></summary><div id="manual" class="grid2" style="margin-top:8px"></div></details>
+
+  <p class="note">הנחות: +25% ייצור (זהב) ו-NPC לאיזון סוגים; המקבל בונה שדות ומפעלים לפי שעות החזר (כמו בדף הסולם) ובניין מרכזי לפחות 5; המשלוח של הלילה הוא מנה אחת לפני השינה; סוחרים: רומאים 500 (משרד סחר +20% לרמה), גאלים 750 (+10%), טאוטונים 1,000 (+10%), מצרים 750 (+10%), הונים 500 (+10%) – מצרים/הונים לא אומתו במשחק. גרסה 2026-10-12</p>
+</div>
+
+<script src="config.js"></script>
+<script src="sync.js"></script>
+<script>
+const B = {"woodcutter":{"max_level":22,"prerequisites":{},"levels":[{"cost":[40,100,50,60],"cost_total":250,"pop_inc":2,"production":7},{"cost":[65,165,85,100],"cost_total":415,"pop_inc":1,"production":13},{"cost":[110,280,140,165],"cost_total":695,"pop_inc":1,"production":21},{"cost":[185,465,235,280],"cost_total":1165,"pop_inc":1,"production":31},{"cost":[310,780,390,465],"cost_total":1945,"pop_inc":1,"production":46},{"cost":[520,1300,650,780],"cost_total":3250,"pop_inc":2,"production":70},{"cost":[870,2170,1085,1300],"cost_total":5425,"pop_inc":2,"production":98},{"cost":[1450,3625,1810,2175],"cost_total":9060,"pop_inc":2,"production":140},{"cost":[2420,6050,3025,3630],"cost_total":15125,"pop_inc":2,"production":203},{"cost":[4040,10105,5050,6060],"cost_total":25255,"pop_inc":2,"production":280},{"cost":[6750,16870,8435,10125],"cost_total":42180,"pop_inc":2,"production":392},{"cost":[11270,28175,14090,16905],"cost_total":70440,"pop_inc":2,"production":525},{"cost":[18820,47055,23525,28230],"cost_total":117630,"pop_inc":2,"production":693},{"cost":[31430,78580,39290,47150],"cost_total":196450,"pop_inc":2,"production":889},{"cost":[52490,131230,65615,78740],"cost_total":328075,"pop_inc":2,"production":1120},{"cost":[87660,219155,109575,131490],"cost_total":547880,"pop_inc":3,"production":1400},{"cost":[146395,365985,182995,219590],"cost_total":914965,"pop_inc":3,"production":1820},{"cost":[244480,611195,305600,366715],"cost_total":1527990,"pop_inc":3,"production":2240},{"cost":[408280,1020695,510350,612420],"cost_total":2551745,"pop_inc":3,"production":2800},{"cost":[681825,1704565,852280,1022740],"cost_total":4261410,"pop_inc":3,"production":3430},{"cost":[1138650,2846620,1423310,1707970],"cost_total":7116550,"pop_inc":3,"production":4270},{"cost":[1901540,4753855,2376925,2852315],"cost_total":11884635,"pop_inc":3,"production":5250}]},"claypit":{"max_level":22,"prerequisites":{},"levels":[{"cost":[80,40,80,50],"cost_total":250,"pop_inc":2,"production":7},{"cost":[135,65,135,85],"cost_total":420,"pop_inc":1,"production":13},{"cost":[225,110,225,140],"cost_total":700,"pop_inc":1,"production":21},{"cost":[375,185,375,235],"cost_total":1170,"pop_inc":1,"production":31},{"cost":[620,310,620,390],"cost_total":1940,"pop_inc":1,"production":46},{"cost":[1040,520,1040,650],"cost_total":3250,"pop_inc":2,"production":70},{"cost":[1735,870,1735,1085],"cost_total":5425,"pop_inc":2,"production":98},{"cost":[2900,1450,2900,1810],"cost_total":9060,"pop_inc":2,"production":140},{"cost":[4840,2420,4840,3025],"cost_total":15125,"pop_inc":2,"production":203},{"cost":[8080,4040,8080,5050],"cost_total":25250,"pop_inc":2,"production":280},{"cost":[13500,6750,13500,8435],"cost_total":42185,"pop_inc":2,"production":392},{"cost":[22540,11270,22540,14090],"cost_total":70440,"pop_inc":2,"production":525},{"cost":[37645,18820,37645,23525],"cost_total":117635,"pop_inc":2,"production":693},{"cost":[62865,31430,62865,39290],"cost_total":196450,"pop_inc":2,"production":889},{"cost":[104985,52490,104985,65615],"cost_total":328075,"pop_inc":2,"production":1120},{"cost":[175320,87660,175320,109575],"cost_total":547875,"pop_inc":3,"production":1400},{"cost":[292790,146395,292790,182995],"cost_total":914970,"pop_inc":3,"production":1820},{"cost":[488955,244480,488955,305600],"cost_total":1527990,"pop_inc":3,"production":2240},{"cost":[816555,408280,816555,510350],"cost_total":2551740,"pop_inc":3,"production":2800},{"cost":[1363650,681825,1363650,852280],"cost_total":4261405,"pop_inc":3,"production":3430},{"cost":[2277295,1138650,2277295,1423310],"cost_total":7116550,"pop_inc":3,"production":4270},{"cost":[3803085,1901540,3803085,2376925],"cost_total":11884635,"pop_inc":3,"production":5250}]},"ironmine":{"max_level":22,"prerequisites":{},"levels":[{"cost":[100,80,30,60],"cost_total":270,"pop_inc":3,"production":7},{"cost":[165,135,50,100],"cost_total":450,"pop_inc":2,"production":13},{"cost":[280,225,85,165],"cost_total":755,"pop_inc":2,"production":21},{"cost":[465,375,140,280],"cost_total":1260,"pop_inc":2,"production":31},{"cost":[780,620,235,465],"cost_total":2100,"pop_inc":2,"production":46},{"cost":[1300,1040,390,780],"cost_total":3510,"pop_inc":2,"production":70},{"cost":[2170,1735,650,1300],"cost_total":5855,"pop_inc":2,"production":98},{"cost":[3625,2900,1085,2175],"cost_total":9785,"pop_inc":2,"production":140},{"cost":[6050,4840,1815,3630],"cost_total":16335,"pop_inc":2,"production":203},{"cost":[10105,8080,3030,6060],"cost_total":27275,"pop_inc":2,"production":280},{"cost":[16870,13500,5060,10125],"cost_total":45555,"pop_inc":3,"production":392},{"cost":[28175,22540,8455,16905],"cost_total":76075,"pop_inc":3,"production":525},{"cost":[47055,37645,14115,28230],"cost_total":127045,"pop_inc":3,"production":693},{"cost":[78580,62865,23575,47150],"cost_total":212170,"pop_inc":3,"production":889},{"cost":[131230,104985,39370,78740],"cost_total":354325,"pop_inc":3,"production":1120},{"cost":[219155,175320,65745,131490],"cost_total":591710,"pop_inc":3,"production":1400},{"cost":[365985,292790,109795,219590],"cost_total":988160,"pop_inc":3,"production":1820},{"cost":[611195,488955,183360,366715],"cost_total":1650225,"pop_inc":3,"production":2240},{"cost":[1020695,816555,306210,612420],"cost_total":2755880,"pop_inc":3,"production":2800},{"cost":[1704565,1363650,511370,1022740],"cost_total":4602325,"pop_inc":3,"production":3430},{"cost":[2846620,2277295,853985,1707970],"cost_total":7685870,"pop_inc":4,"production":4270},{"cost":[4753855,3803085,1426155,2852315],"cost_total":12835410,"pop_inc":4,"production":5250}]},"cropland":{"max_level":22,"prerequisites":{},"levels":[{"cost":[70,90,70,20],"cost_total":250,"pop_inc":0,"production":7},{"cost":[115,150,115,35],"cost_total":415,"pop_inc":0,"production":13},{"cost":[195,250,195,55],"cost_total":695,"pop_inc":0,"production":21},{"cost":[325,420,325,95],"cost_total":1165,"pop_inc":0,"production":31},{"cost":[545,700,545,155],"cost_total":1945,"pop_inc":0,"production":46},{"cost":[910,1170,910,260],"cost_total":3250,"pop_inc":1,"production":70},{"cost":[1520,1950,1520,435],"cost_total":5425,"pop_inc":1,"production":98},{"cost":[2535,3260,2535,725],"cost_total":9055,"pop_inc":1,"production":140},{"cost":[4235,5445,4235,1210],"cost_total":15125,"pop_inc":1,"production":203},{"cost":[7070,9095,7070,2020],"cost_total":25255,"pop_inc":1,"production":280},{"cost":[11810,15185,11810,3375],"cost_total":42180,"pop_inc":1,"production":392},{"cost":[19725,25360,19725,5635],"cost_total":70445,"pop_inc":1,"production":525},{"cost":[32940,42350,32940,9410],"cost_total":117640,"pop_inc":1,"production":693},{"cost":[55005,70720,55005,15715],"cost_total":196445,"pop_inc":1,"production":889},{"cost":[91860,118105,91860,26245],"cost_total":328070,"pop_inc":1,"production":1120},{"cost":[153405,197240,153405,43830],"cost_total":547880,"pop_inc":2,"production":1400},{"cost":[256190,329385,256190,73195],"cost_total":914960,"pop_inc":2,"production":1820},{"cost":[427835,550075,427835,122240],"cost_total":1527985,"pop_inc":2,"production":2240},{"cost":[714485,918625,714485,204140],"cost_total":2551735,"pop_inc":2,"production":2800},{"cost":[1193195,1534105,1193195,340915],"cost_total":4261410,"pop_inc":2,"production":3430},{"cost":[1992635,2561960,1992635,569325],"cost_total":7116555,"pop_inc":2,"production":4270},{"cost":[3327700,4278470,3327700,950770],"cost_total":11884640,"pop_inc":2,"production":5250}]},"sawmill":{"max_level":5,"prerequisites":{"woodcutter":10,"main_building":5},"levels":[{"cost":[520,380,290,90],"cost_total":1280,"pop_inc":4},{"cost":[935,685,520,160],"cost_total":2300,"pop_inc":2},{"cost":[1685,1230,940,290],"cost_total":4145,"pop_inc":2},{"cost":[3035,2215,1690,525],"cost_total":7465,"pop_inc":2},{"cost":[5460,3990,3045,945],"cost_total":13440,"pop_inc":2}]},"brickyard":{"max_level":5,"prerequisites":{"claypit":10,"main_building":5},"levels":[{"cost":[440,480,320,50],"cost_total":1290,"pop_inc":3},{"cost":[790,865,575,90],"cost_total":2320,"pop_inc":2},{"cost":[1425,1555,1035,160],"cost_total":4175,"pop_inc":2},{"cost":[2565,2800,1865,290],"cost_total":7520,"pop_inc":2},{"cost":[4620,5040,3360,525],"cost_total":13545,"pop_inc":2}]},"iron_foundry":{"max_level":5,"prerequisites":{"ironmine":10,"main_building":5},"levels":[{"cost":[200,450,510,120],"cost_total":1280,"pop_inc":6},{"cost":[360,810,920,215],"cost_total":2305,"pop_inc":3},{"cost":[650,1460,1650,390],"cost_total":4150,"pop_inc":3},{"cost":[1165,2625,2975,700],"cost_total":7465,"pop_inc":3},{"cost":[2100,4725,5355,1260],"cost_total":13440,"pop_inc":3}]},"grain_mill":{"max_level":5,"prerequisites":{"cropland":5,"main_building":5},"levels":[{"cost":[500,440,380,1240],"cost_total":2560,"pop_inc":3},{"cost":[900,790,685,2230],"cost_total":4605,"pop_inc":2},{"cost":[1620,1425,1230,4020],"cost_total":8295,"pop_inc":2},{"cost":[2915,2565,2215,7230],"cost_total":14925,"pop_inc":2},{"cost":[5250,4620,3990,13015],"cost_total":26875,"pop_inc":2}]},"bakery":{"max_level":5,"prerequisites":{"cropland":10,"grain_mill":5,"main_building":5},"levels":[{"cost":[1200,1480,870,1600],"cost_total":5150,"pop_inc":4},{"cost":[2160,2665,1565,2880],"cost_total":9270,"pop_inc":2},{"cost":[3890,4795,2820,5185],"cost_total":16690,"pop_inc":2},{"cost":[7000,8630,5075,9330],"cost_total":30035,"pop_inc":2},{"cost":[12595,15535,9135,16795],"cost_total":54060,"pop_inc":2}]},"warehouse":{"max_level":20,"prerequisites":{"main_building":1},"levels":[{"cost":[130,160,90,40],"cost_total":420,"pop_inc":1},{"cost":[165,205,115,50],"cost_total":535,"pop_inc":1},{"cost":[215,260,145,65],"cost_total":685,"pop_inc":1},{"cost":[275,335,190,85],"cost_total":885,"pop_inc":1},{"cost":[350,430,240,105],"cost_total":1125,"pop_inc":1},{"cost":[445,550,310,135],"cost_total":1440,"pop_inc":1},{"cost":[570,705,395,175],"cost_total":1845,"pop_inc":1},{"cost":[730,900,505,225],"cost_total":2360,"pop_inc":1},{"cost":[935,1155,650,290],"cost_total":3030,"pop_inc":1},{"cost":[1200,1475,830,370],"cost_total":3875,"pop_inc":1},{"cost":[1535,1890,1065,470],"cost_total":4960,"pop_inc":2},{"cost":[1965,2420,1360,605],"cost_total":6350,"pop_inc":2},{"cost":[2515,3095,1740,775],"cost_total":8125,"pop_inc":2},{"cost":[3220,3960,2230,990],"cost_total":10400,"pop_inc":2},{"cost":[4120,5070,2850,1270],"cost_total":13310,"pop_inc":2},{"cost":[5275,6490,3650,1625],"cost_total":17040,"pop_inc":2},{"cost":[6750,8310,4675,2075],"cost_total":21810,"pop_inc":2},{"cost":[8640,10635,5980,2660],"cost_total":27915,"pop_inc":2},{"cost":[11060,13610,7655,3405],"cost_total":35730,"pop_inc":2},{"cost":[14155,17420,9800,4355],"cost_total":45730,"pop_inc":2}]},"granary":{"max_level":20,"prerequisites":{"main_building":1},"levels":[{"cost":[80,100,70,20],"cost_total":270,"pop_inc":1},{"cost":[100,130,90,25],"cost_total":345,"pop_inc":1},{"cost":[130,165,115,35],"cost_total":445,"pop_inc":1},{"cost":[170,210,145,40],"cost_total":565,"pop_inc":1},{"cost":[215,270,190,55],"cost_total":730,"pop_inc":1},{"cost":[275,345,240,70],"cost_total":930,"pop_inc":1},{"cost":[350,440,310,90],"cost_total":1190,"pop_inc":1},{"cost":[450,565,395,115],"cost_total":1525,"pop_inc":1},{"cost":[575,720,505,145],"cost_total":1945,"pop_inc":1},{"cost":[740,920,645,185],"cost_total":2490,"pop_inc":1},{"cost":[945,1180,825,235],"cost_total":3185,"pop_inc":2},{"cost":[1210,1510,1060,300],"cost_total":4080,"pop_inc":2},{"cost":[1545,1935,1355,385],"cost_total":5220,"pop_inc":2},{"cost":[1980,2475,1735,495],"cost_total":6685,"pop_inc":2},{"cost":[2535,3170,2220,635],"cost_total":8560,"pop_inc":2},{"cost":[3245,4055,2840,810],"cost_total":10950,"pop_inc":2},{"cost":[4155,5190,3635,1040],"cost_total":14020,"pop_inc":2},{"cost":[5315,6645,4650,1330],"cost_total":17940,"pop_inc":2},{"cost":[6805,8505,5955,1700],"cost_total":22965,"pop_inc":2},{"cost":[8710,10890,7620,2180],"cost_total":29400,"pop_inc":2}]},"main_building":{"max_level":20,"prerequisites":{},"levels":[{"cost":[70,40,60,20],"cost_total":190,"pop_inc":2},{"cost":[90,50,75,25],"cost_total":240,"pop_inc":1},{"cost":[115,65,100,35],"cost_total":315,"pop_inc":1},{"cost":[145,85,125,40],"cost_total":395,"pop_inc":1},{"cost":[190,105,160,55],"cost_total":510,"pop_inc":1},{"cost":[240,135,205,70],"cost_total":650,"pop_inc":2},{"cost":[310,175,265,90],"cost_total":840,"pop_inc":2},{"cost":[395,225,340,115],"cost_total":1075,"pop_inc":2},{"cost":[505,290,430,145],"cost_total":1370,"pop_inc":2},{"cost":[645,370,555,185],"cost_total":1755,"pop_inc":2},{"cost":[825,470,710,235],"cost_total":2240,"pop_inc":2},{"cost":[1060,605,905,300],"cost_total":2870,"pop_inc":2},{"cost":[1355,775,1160,385],"cost_total":3675,"pop_inc":2},{"cost":[1735,990,1485,495],"cost_total":4705,"pop_inc":2},{"cost":[2220,1270,1900,635],"cost_total":6025,"pop_inc":2},{"cost":[2840,1625,2435,810],"cost_total":7710,"pop_inc":3},{"cost":[3635,2075,3115,1040],"cost_total":9865,"pop_inc":3},{"cost":[4650,2660,3990,1330],"cost_total":12630,"pop_inc":3},{"cost":[5955,3405,5105,1700],"cost_total":16165,"pop_inc":3},{"cost":[7620,4355,6535,2180],"cost_total":20690,"pop_inc":3}]},"marketplace":{"max_level":20,"prerequisites":{"main_building":3,"warehouse":1,"granary":1},"levels":[{"cost":[80,70,120,70],"cost_total":340,"pop_inc":4},{"cost":[100,90,155,90],"cost_total":435,"pop_inc":2},{"cost":[130,115,195,115],"cost_total":555,"pop_inc":2},{"cost":[170,145,250,145],"cost_total":710,"pop_inc":2},{"cost":[215,190,320,190],"cost_total":915,"pop_inc":2},{"cost":[275,240,410,240],"cost_total":1165,"pop_inc":3},{"cost":[350,310,530,310],"cost_total":1500,"pop_inc":3},{"cost":[450,395,675,395],"cost_total":1915,"pop_inc":3},{"cost":[575,505,865,505],"cost_total":2450,"pop_inc":3},{"cost":[740,645,1105,645],"cost_total":3135,"pop_inc":3},{"cost":[945,825,1415,825],"cost_total":4010,"pop_inc":3},{"cost":[1210,1060,1815,1060],"cost_total":5145,"pop_inc":3},{"cost":[1545,1355,2320,1355],"cost_total":6575,"pop_inc":3},{"cost":[1980,1735,2970,1735],"cost_total":8420,"pop_inc":3},{"cost":[2535,2220,3805,2220],"cost_total":10780,"pop_inc":3},{"cost":[3245,2840,4870,2840],"cost_total":13795,"pop_inc":4},{"cost":[4155,3635,6230,3635],"cost_total":17655,"pop_inc":4},{"cost":[5315,4650,7975,4650],"cost_total":22590,"pop_inc":4},{"cost":[6805,5955,10210,5955],"cost_total":28925,"pop_inc":4},{"cost":[8710,7620,13065,7620],"cost_total":37015,"pop_inc":4}]},"trade_office":{"max_level":20,"prerequisites":{"marketplace":20,"stable":10},"levels":[{"cost":[1400,1330,1200,400],"cost_total":4330,"pop_inc":3},{"cost":[1790,1700,1535,510],"cost_total":5535,"pop_inc":2},{"cost":[2295,2180,1965,655],"cost_total":7095,"pop_inc":2},{"cost":[2935,2790,2515,840],"cost_total":9080,"pop_inc":2},{"cost":[3760,3570,3220,1075],"cost_total":11625,"pop_inc":2},{"cost":[4810,4570,4125,1375],"cost_total":14880,"pop_inc":2},{"cost":[6155,5850,5280,1760],"cost_total":19045,"pop_inc":2},{"cost":[7880,7485,6755,2250],"cost_total":24370,"pop_inc":2},{"cost":[10090,9585,8645,2880],"cost_total":31200,"pop_inc":2},{"cost":[12915,12265,11070,3690],"cost_total":39940,"pop_inc":2},{"cost":[16530,15700,14165,4720],"cost_total":51115,"pop_inc":3},{"cost":[21155,20100,18135,6045],"cost_total":65435,"pop_inc":3},{"cost":[27080,25725,23210,7735],"cost_total":83750,"pop_inc":3},{"cost":[34660,32930,29710,9905],"cost_total":107205,"pop_inc":3},{"cost":[44370,42150,38030,12675],"cost_total":137225,"pop_inc":3},{"cost":[56790,53950,48680,16225],"cost_total":175645,"pop_inc":3},{"cost":[72690,69060,62310,20770],"cost_total":224830,"pop_inc":3},{"cost":[93045,88395,79755,26585],"cost_total":287780,"pop_inc":3},{"cost":[119100,113145,102085,34030],"cost_total":368360,"pop_inc":3},{"cost":[152445,144825,130670,43555],"cost_total":471495,"pop_inc":3}]}};
+const MERCH = { romans: { cap: 500, speed: 16, to: 0.20 }, gauls: { cap: 750, speed: 24, to: 0.10 }, teutons: { cap: 1000, speed: 12, to: 0.10 }, egyptians: { cap: 750, speed: 16, to: 0.10 }, huns: { cap: 500, speed: 20, to: 0.10 } };
+const FIELD_KEYS = ['woodcutter', 'claypit', 'ironmine', 'cropland'], FACT = ['sawmill', 'brickyard', 'iron_foundry', 'grain_mill'];
+const RES = ['עץ', 'חמר', 'ברזל', 'יבול'], FNAME = ['יער', 'חמר', 'ברזל', 'יבול'], FACN = { sawmill: 'מנסרה', brickyard: 'מפעל לבנים', iron_foundry: 'מפעל ברזל', grain_mill: 'טחנת קמח', bakery: 'מאפייה', warehouse: 'מחסן', granary: 'אסם', main_building: 'בניין ראשי' };
+const PROD0 = 3, GOLD = 1.25, MAP = 401;
+const $ = id => document.getElementById(id);
+const nf = n => Math.round(n).toLocaleString('en-US');
+const KEY = 'tt-transfers-v1', CPKEY = 'tt-cp-v2';
+let T = { from: '', to: '', toLevel: 0, visitH: 1, nightH: 7, bed: '23:30', ret: 80, share: 30, auto: true, mode: 'route', manual: {} };
+try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o) T = Object.assign(T, o); } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(T)); if (window.TSync) TSync.touch(KEY); } catch (e) {} }
+let CP = null; try { CP = JSON.parse(localStorage.getItem(CPKEY) || 'null'); } catch (e) {}
+
+// ---------- village state from the cp page (plus manual overrides)
+const capOf = l => l > 0 ? Math.round((2120 * Math.pow(1.2, l) - 1320) / 100) * 100 : 800;
+const prodAt = l => l > 0 ? B.woodcutter.levels[l - 1].production : PROD0;
+function villages() { return CP && CP.order ? CP.order.map(id => CP.villages[id]).filter(Boolean) : []; }
+function vState(v) {
+  const m = (T.manual || {})[v.id] || {};
+  const L = v.L || {}; const ft = v.FT && v.FT.length === 18 ? v.FT : [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3];
+  const st = { id: v.id, name: v.name, tribe: m.tribe || v.tribe || 'romans', x: m.x ?? v.x, y: m.y ?? v.y,
+    fields: ft.map((t, i) => ({ t, l: L['f' + i] || 0 })), fac: {}, mb: L.main_building || 0,
+    wh: L.warehouse || 0, gr: L.granary || 0, market: m.market ?? (L.marketplace || 0),
+    stock: (m.stock || v.stock || [0, 0, 0, 0]).slice(), prodImp: m.prod || v.prod || null, freeCrop: v.freeCrop };
+  for (const k of FACT.concat(['bakery'])) st.fac[k] = L[k] || 0;
+  st.capW = v.cap && v.cap.W ? v.cap.W : capOf(st.wh); st.capG = v.cap && v.cap.G ? v.cap.G : capOf(st.gr);
+  if (m.capW) st.capW = m.capW; if (m.capG) st.capG = m.capG;
+  // production: computed from levels, calibrated to the game's number when we have it (oases, hero, etc.)
+  const comp = computedProd(st); st.mult = [1, 1, 1, 1];
+  if (st.prodImp) st.mult = comp.map((c, t) => Math.min(4, Math.max(0.5, st.prodImp[t] / Math.max(1, c))));
+  st.upkeep = st.prodImp && st.freeCrop != null ? Math.max(0, st.prodImp[3] - st.freeCrop) : popOf(st);
+  return st;
+}
+function popOf(st) { let p = 0; for (const f of st.fields) if (f.l > 0) p += sumPop(FIELD_KEYS[f.t], f.l); for (const k in st.fac) p += sumPop(k, st.fac[k]); return p + sumPop('main_building', st.mb) + sumPop('warehouse', st.wh) + sumPop('granary', st.gr) + sumPop('marketplace', st.market); }
+function sumPop(k, l) { let p = 0; for (let i = 1; i <= l; i++) p += B[k].levels[i - 1].pop_inc; return p; }
+function computedProd(st) {
+  const base = [0, 0, 0, 0]; for (const f of st.fields) base[f.t] += prodAt(f.l);
+  return base.map((p, t) => p * GOLD * (1 + 0.05 * ((st.fac[FACT[t]] || 0) + (t === 3 ? (st.fac.bakery || 0) : 0))));
+}
+const prodOf = st => computedProd(st).map((p, t) => p * st.mult[t]);   // gross per hour
+function dist(a, b) { if (a.x == null || b.x == null) return null; let dx = Math.abs(a.x - b.x), dy = Math.abs(a.y - b.y); dx = Math.min(dx, MAP - dx); dy = Math.min(dy, MAP - dy); return Math.sqrt(dx * dx + dy * dy); }
+function merch(S, R) { const m = MERCH[S.tribe] || MERCH.romans; const d = dist(S, R); const cap = m.cap * (1 + m.to * (+T.toLevel || 0)); const n = S.market; const travel = d == null ? null : d / m.speed; return { n, cap, batch: n * cap, d, travel, round: travel == null ? null : 2 * travel, perHour: travel ? n * cap / (2 * travel) : null }; }
+
+// ---------- production ladder of the receiver (same logic as the cp page)
+function costTot(k, l) { return B[k].levels[l - 1].cost; }
+function steps(st) {
+  const out = [];
+  const groups = {};
+  st.fields.forEach((f, i) => { if (f.l >= 10) return; const g = groups[f.t + '@' + f.l] = groups[f.t + '@' + f.l] || { t: f.t, l: f.l, idxs: [] }; g.idxs.push(i); });
+  for (const g of Object.values(groups)) {
+    // one field at a time (cost and gain per field); the group only says how many such fields there are
+    const n = g.idxs.length, cost = costTot('woodcutter', g.l + 1);
+    const mult = GOLD * (1 + 0.05 * ((st.fac[FACT[g.t]] || 0) + (g.t === 3 ? (st.fac.bakery || 0) : 0))) * st.mult[g.t];
+    const gain = (prodAt(g.l + 1) - prodAt(g.l)) * mult;
+    out.push({ kind: 'field', t: g.t, idxs: [g.idxs[0]], n, label: `${FNAME[g.t]}${n > 1 ? ` (×${n})` : ''}`, from: g.l, to: g.l + 1, cost, tot: cost.reduce((a, b) => a + b, 0), gain, payback: cost.reduce((a, b) => a + b, 0) / gain });
+  }
+  const base = [0, 0, 0, 0]; for (const f of st.fields) base[f.t] += prodAt(f.l);
+  const fac = (key, t) => {
+    const cur = st.fac[key] || 0; if (cur >= 5) return;
+    const pre = B[key].prerequisites || {}; for (const pk in pre) { const have = pk === 'main_building' ? st.mb : pk === 'grain_mill' ? st.fac.grain_mill : Math.max(0, ...st.fields.filter(f => FIELD_KEYS[f.t] === pk).map(f => f.l)); if (have < pre[pk]) return; }
+    const cost = costTot(key, cur + 1), gain = base[t] * GOLD * 0.05 * st.mult[t];
+    out.push({ kind: 'fac', key, label: FACN[key], from: cur, to: cur + 1, cost, tot: cost.reduce((a, b) => a + b, 0), gain, payback: cost.reduce((a, b) => a + b, 0) / gain });
+  };
+  FACT.forEach((k, t) => fac(k, t)); fac('bakery', 3);
+  if (st.mb < 5) out.unshift({ kind: 'mb', label: 'בניין ראשי', from: st.mb, to: st.mb + 1, cost: costTot('main_building', st.mb + 1), tot: costTot('main_building', st.mb + 1).reduce((a, b) => a + b, 0), gain: 0, payback: 0 });
+  return out.sort((a, b) => a.payback - b.payback);
+}
+function apply(st, s) { if (s.kind === 'field') s.idxs.forEach(i => { st.fields[i].l = s.to; }); else if (s.kind === 'fac') st.fac[s.key] = s.to; else if (s.kind === 'mb') st.mb = s.to; else if (s.kind === 'wh') { st.wh = s.to; st.capW = capOf(s.to); } else if (s.kind === 'gr') { st.gr = s.to; st.capG = capOf(s.to); } }
+const done = st => st.fields.every(f => f.l >= 10) && FACT.concat(['bakery']).every(k => (st.fac[k] || 0) >= 5);
+const capT = (st, t) => t === 3 ? st.capG : st.capW;
+function storageStep(st, s) {   // the storage upgrade needed before step s fits
+  for (let t = 0; t < 4; t++) if (s.cost[t] > capT(st, t)) { const key = t === 3 ? 'gr' : 'wh', lvl = (t === 3 ? st.gr : st.wh) + 1; if (lvl > 20) return null; const cost = costTot(t === 3 ? 'granary' : 'warehouse', lvl); return { kind: key, label: t === 3 ? 'אסם' : 'מחסן', from: lvl - 1, to: lvl, cost, tot: cost.reduce((a, b) => a + b, 0), reason: s.label }; }
+  return null;
+}
+function build(st, log, hour) {   // at a visit: build everything affordable, cheapest payback first; storage when it blocks
+  let guard = 0;
+  while (guard++ < 120 && !done(st)) {
+    const ss = steps(st); if (!ss.length) break;
+    let s = ss[0];
+    const need = storageStep(st, s); if (need) { if (need.cost.every((c, t) => c <= st.stock[t])) { s = need; } else return; }
+    if (!s.cost.every((c, t) => c <= st.stock[t])) return;
+    s.cost.forEach((c, t) => { st.stock[t] -= c; }); apply(st, s); if (log) log.push({ hour, s });
+  }
+}
+function clone(st) { return JSON.parse(JSON.stringify(st)); }
+
+// ---------- hourly simulation of the receiver with a given help rate (resources per hour, awake only) + a night batch
+function simulate(R0, helpPerHour, batch, startHour) {
+  const st = clone(R0); const log = []; let sent = 0, hour = 0; const maxH = 24 * 120;
+  const bed = +T.bed.split(':')[0] + (+T.bed.split(':')[1] || 0) / 60, N = +T.nightH || 0, visit = Math.max(0.5, +T.visitH || 1);
+  const asleep = h => N > 0 && ((h - bed + 24) % 24) < N;
+  let sinceVisit = 0, nightRate = 0; const route = T.mode === 'route';
+  while (!done(st) && hour < maxH) {
+    const tod = (startHour + hour) % 24;
+    const prod = prodOf(st); prod[3] -= st.upkeep;
+    for (let t = 0; t < 4; t++) st.stock[t] = Math.min(capT(st, t), st.stock[t] + prod[t]);
+    if (!asleep(tod)) {
+      sinceVisit += 1;
+      if (helpPerHour > 0) {   // hourly help, spread by what the next steps need, limited by room
+        const goingToSleep = N > 0 && asleep((tod + 1) % 24);
+        if (route) {
+          sent += deliver(st, Math.min(batch, helpPerHour), visit, prod);
+          if (goingToSleep) { const room = [0, 1, 2, 3].reduce((a, t) => a + Math.max(0, capT(st, t) - st.stock[t] - Math.max(0, prod[t]) * N), 0); nightRate = Math.min(helpPerHour, room / Math.max(1, N)); }
+        } else {
+          const amount = goingToSleep ? Math.min(batch, helpPerHour * (N + 1)) : Math.min(batch, helpPerHour);
+          sent += deliver(st, amount, goingToSleep ? N + 1 : visit, prod);
+        }
+      }
+      if (sinceVisit >= visit) { sinceVisit = 0; build(st, log, hour); }
+    } else if (route && helpPerHour > 0 && nightRate > 0) {
+      sent += deliver(st, Math.min(batch, nightRate), 1, prod, nightRate * N);   // the route keeps running at night at the rate that fits until morning
+    }
+    hour++;
+  }
+  return { hours: hour, days: hour / 24, sent, log, st };
+}
+function deliver(st, amount, hoursAhead, prod, needAmount) {   // split `amount` across types by need, never above room; returns what was sent
+  const ss = steps(st); const need = [0, 0, 0, 0]; const target = needAmount || amount * 2;
+  let budget = 0; for (const s of ss.slice(0, 12)) { const n = s.n || 1; s.cost.forEach((c, t) => { need[t] += c * n; }); budget += s.tot * n; if (budget >= target) break; }
+  const room = need.map((n, t) => Math.max(0, capT(st, t) - st.stock[t] - Math.max(0, prod[t]) * hoursAhead));
+  const want = need.map((n, t) => Math.max(0, n - st.stock[t]));
+  let tw = want.reduce((a, b) => a + b, 0); if (tw <= 0) { want.fill(1); tw = 4; }
+  let left = amount, sentNow = 0;
+  for (let pass = 0; pass < 2 && left > 0; pass++) {
+    const w = pass === 0 ? want : room; const tot = w.reduce((a, b) => a + b, 0); if (tot <= 0) break;
+    const alloc = w.map(x => left * x / tot); let used = 0;
+    for (let t = 0; t < 4; t++) { const a = Math.min(alloc[t], room[t] - 0); if (a > 0) { st.stock[t] += a; room[t] -= a; used += a; } }
+    sentNow += used; left -= used;
+  }
+  return sentNow;
+}
+
+// ---------- economics over the share of the sender's production
+function evaluate(S, R, m) {
+  const prodS = prodOf(S); const sTot = prodS.reduce((a, b) => a + b, 0) - S.upkeep;
+  const startHour = new Date().getHours();
+  const alone = simulate(R, 0, m.batch, startHour);
+  const doneSt = alone.st; const pd = prodOf(doneSt); const dailyDone = (pd.reduce((a, b) => a + b, 0) - doneSt.upkeep) * 24;
+  const ret = (+T.ret || 0) / 100;
+  const rows = [];
+  for (let a = 0; a <= 100; a += 10) {
+    const h = sTot * a / 100; const cap = m.perHour != null ? Math.min(h, m.perHour) : h;
+    const r = a === 0 ? alone : simulate(R, cap, m.batch, startHour);
+    rows.push({ share: a, rate: cap, days: r.days, sent: r.sent, breakEven: r.sent > 0 ? r.sent / Math.max(1, ret * dailyDone) : 0, saved: alone.days - r.days, log: r.log, capped: m.perHour != null && h > m.perHour });
+  }
+  // recommended share: the smallest one that gets ~90% of the maximum time saving (after that every extra resource buys very little)
+  const maxSaved = Math.max(...rows.map(r => r.saved));
+  let best = rows[0]; if (maxSaved > 0.2) best = rows.find(r => r.saved >= 0.9 * maxSaved) || rows[rows.length - 1];
+  return { rows, best, alone, dailyDone, sTot, maxSaved };
+}
+
+// ---------- UI
+function fill() {
+  const vs = villages();
+  for (const id of ['from', 'to']) { const sel = $(id); sel.innerHTML = vs.length ? vs.map(v => `<option value="${v.id}">${esc(v.name)}</option>`).join('') : '<option value="">אין כפרים – הדבק בדף הסולם</option>'; }
+  if (vs.length) { $('from').value = vs.some(v => v.id === T.from) ? T.from : vs[0].id; $('to').value = vs.some(v => v.id === T.to) ? T.to : (vs[1] || vs[0]).id; }
+  $('toLevel').value = T.toLevel; $('visitH').value = T.visitH; $('nightH').value = T.nightH; $('bed').value = T.bed; $('ret').value = T.ret; $('mode').value = T.mode || 'route'; $('share').value = T.share; $('shareLbl').textContent = T.share + '%';
+}
+const vn = st => `<span dir="auto">${esc(st.name)}</span>`;
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function readUI() { T.from = $('from').value; T.to = $('to').value; T.toLevel = +$('toLevel').value || 0; T.visitH = +$('visitH').value || 1; T.nightH = +$('nightH').value || 0; T.bed = $('bed').value || '23:30'; T.ret = +$('ret').value || 0; T.mode = $('mode').value; T.share = +$('share').value; save(); }
+function renderManual(S, R) {
+  const box = (st) => { const m = (T.manual || {})[st.id] || {}; return `<div><b dir="auto">${esc(st.name)}</b> <span class="note">(${st.tribe}${st.x != null ? ` · ${st.x}|${st.y}` : ' · אין קואורדינטות'})</span><div class="row2" style="margin-top:4px">
+    <label class="f">x<input type="number" data-m="x" data-v="${st.id}" value="${st.x ?? ''}"></label><label class="f">y<input type="number" data-m="y" data-v="${st.id}" value="${st.y ?? ''}"></label>
+    <label class="f">שוק<input type="number" data-m="market" data-v="${st.id}" value="${st.market}"></label>
+    <label class="f">מחסן (קיבולת)<input type="number" data-m="capW" data-v="${st.id}" value="${st.capW}"></label><label class="f">אסם (קיבולת)<input type="number" data-m="capG" data-v="${st.id}" value="${st.capG}"></label></div>
+    <div class="note" style="margin-top:4px">מלאי: ${st.stock.map(nf).join(' / ')} · ייצור לשעה ${st.prodImp ? '(מהמשחק)' : '(מחושב)'}: ${prodOf(st).map(nf).join(' / ')} · אחזקה ${nf(st.upkeep)} · שדות: ${st.fields.map(f => f.l).join(',')}</div></div>`; };
+  $('manual').innerHTML = box(S) + box(R);
+  $('manual').querySelectorAll('[data-m]').forEach(i => i.addEventListener('change', () => { T.manual = T.manual || {}; const mm = T.manual[i.dataset.v] = T.manual[i.dataset.v] || {}; const v = i.value === '' ? null : +i.value; if (v == null) delete mm[i.dataset.m]; else mm[i.dataset.m] = v; save(); render(); }));
+}
+function sendBox(title, amounts, note) { return `<h3>${title}</h3><div class="send">${amounts.map((a, t) => `<div><small>${RES[t]}</small><b>${nf(a)}</b></div>`).join('')}</div><p class="note" style="margin:0">${note}</p>`; }
+function render() {
+  const vs = villages(); const out = $('out');
+  if (vs.length < 2) { out.innerHTML = `<div class="card"><p>צריך לפחות שני כפרים בדף <a href="cp.html">סולם נק"ת</a> (הדבקה של המסך הראשי ומסך המבנים לכל אחד). ${vs.length === 1 ? 'יש אחד.' : ''}</p></div>`; $('dataWarn').textContent = ''; return; }
+  const S = vState(vs.find(v => v.id === T.from) || vs[0]), R = vState(vs.find(v => v.id === T.to) || vs[1]);
+  renderManual(S, R);
+  const warn = [];
+  if (S.x == null || R.x == null) warn.push('אין קואורדינטות לאחד הכפרים – הדבק שוב מסך ראשי (רשימת הכפרים בצד) או מלא ידנית למטה');
+  if (!S.prodImp) warn.push(`הייצור של ${S.name} מחושב מהרמות (בלי נאות וגיבור) – הדבק מסך ראשי לקבל את המספר מהמשחק`);
+  if (!R.prodImp) warn.push(`הייצור של ${R.name} מחושב מהרמות`);
+  if (!S.market) warn.push(`ל-${S.name} אין שוק לפי הנתונים – אין סוחרים`);
+  $('dataWarn').innerHTML = warn.map(w => `⚠ ${esc(w)}`).join('<br>');
+  if (S.id === R.id) { out.innerHTML = '<div class="card">בחר שני כפרים שונים.</div>'; return; }
+  const m = merch(S, R);
+  if (done(R)) { out.innerHTML = `<div class="card"><p class="big">${vn(R)} גמור בייצור (שדות 10, מפעלים 5).</p><p>מכאן הוא אמור לשלוח ל-${vn(S)}, לא לקבל. את מבני התרבות שלו בונים מהייצור שלו (דף הסולם, תפקיד פידר).</p></div>`; return; }
+  const ev = evaluate(S, R, m);
+  if (T.auto) { T.share = ev.best.share; $('share').value = T.share; $('shareLbl').textContent = T.share + '%'; }
+  const row = ev.rows.find(r => r.share === T.share) || ev.best;
+  const prodS = prodOf(S); const rate = Math.min(ev.sTot * T.share / 100, m.perHour ?? Infinity);
+  let h = '';
+  // --- verdict: payback at the receiver vs payback at the sender
+  const ss0 = steps(R).filter(x => x.payback > 0); const pR = ss0.length ? ss0[0].payback : null; const nextS = stepsCapital(S); const pS = nextS ? nextS.payback : null;
+  const worth = pR != null && (pS == null || pR < pS);
+  h += `<div class="card"><h2>האם שווה, ובכמה</h2>`;
+  h += `<div class="chips"><span class="chip">${vn(S)} מייצר ${nf(ev.sTot)} לשעה נטו</span><span class="chip">${vn(R)} לבד: גמור בעוד ${ev.alone.days.toFixed(1)} ימים</span><span class="chip">גמור הוא מייצר ${nf(ev.dailyDone)} ליום, מחזיר ${T.ret}% = ${nf(ev.dailyDone * T.ret / 100)} ליום</span>${m.travel != null ? `<span class="chip">מרחק ${m.d.toFixed(1)} · ${(m.travel * 60).toFixed(0)} דק' לכיוון · ${m.n} סוחרים × ${nf(m.cap)} = ${nf(m.batch)} למנה · עד ${nf(m.perHour)} לשעה</span>` : '<span class="chip w">אין מרחק – אין תקרת סוחרים בחישוב</span>'}</div>`;
+  h += `<div class="verdict ${worth ? 'yes' : 'no'}">${worth ? `כן. משאב בצעד הבא של ${vn(R)} (${ss0[0].label} ${ss0[0].from}→${ss0[0].to}) מחזיר את עצמו ב-<b>${nf(pR)} שעות</b>; בצעד הבא של ${vn(S)} (${nextS.label} ${nextS.from}→${nextS.to}) ב-<b>${nf(pS)} שעות</b>. המשאב שווה יותר בכפר החדש.` : `לא כרגע. הצעד הבא ב-${vn(R)} מחזיר את עצמו ב-${pR != null ? nf(pR) : '—'} שעות, בקרופר ב-${pS != null ? nf(pS) : '—'} – המשאב שווה יותר אצל הקרופר.`}</div>`;
+  h += `<p><b>כמה:</b> מומלץ <b>${ev.best.share}%</b> מהייצור של ${vn(S)} (${nf(ev.best.rate)} לשעה). עד שם כל תוספת מקצרת משמעותית; מעבר לזה התועלת קטנה: ${ev.best.share}% → גמור בעוד ${ev.best.days.toFixed(1)} ימים, 100% → ${ev.rows[10].days.toFixed(1)} ימים תמורת עוד ${nf(ev.rows[10].sent - ev.best.sent)} משאבים. ההשקעה חוזרת לקרופר ${ev.best.breakEven.toFixed(1)} ימים אחרי שהכפר גמור (ב-${T.ret}% מהייצור שלו).</p>`;
+  h += `<div class="tbl"><table><thead><tr><th>נתח</th><th class="n">לשעה</th><th class="n">גמור בעוד (ימים)</th><th class="n">חיסכון (ימים)</th><th class="n">נשלח סה"כ</th><th class="n">חוזר לקרופר אחרי (ימים)</th></tr></thead><tbody>`;
+  for (const r of ev.rows) h += `<tr class="${r.share === ev.best.share ? 'best' : ''}"><td>${r.share}%${r.capped ? ' <span class="note">(סוחרים)</span>' : ''}</td><td class="n">${nf(r.rate)}</td><td class="n">${r.days.toFixed(1)}</td><td class="n">${r.saved.toFixed(1)}</td><td class="n">${nf(r.sent)}</td><td class="n">${r.share ? r.breakEven.toFixed(1) : '—'}</td></tr>`;
+  h += `</tbody></table></div><p class="note">סימולציה שעה-שעה: הכפר המקבל בונה בכל ביקור את הצעד הזול ביותר שהוא יכול להרשות לעצמו ושנכנס במחסן; בלילה אין בנייה. ${T.mode === 'route' ? 'נתיב קבוע: משלוח כל שעה, בלילה בכמות שנכנסת עד הבוקר.' : 'ידני: משלוח בכל ביקור ומנה אחת לפני השינה.'} "(סוחרים)" = הנתח גדול ממה שהסוחרים מספיקים להעביר.</p></div>`;
+  // --- now
+  const hoursNow = new Date().getHours() + new Date().getMinutes() / 60; const bed = +T.bed.split(':')[0] + (+T.bed.split(':')[1] || 0) / 60;
+  const prodR = prodOf(R); prodR[3] -= R.upkeep;
+  const ss = steps(R);
+  const roomV = [0, 1, 2, 3].map(t => Math.max(0, capT(R, t) - R.stock[t] - Math.max(0, prodR[t]) * T.visitH));
+  const roomN = [0, 1, 2, 3].map(t => Math.max(0, capT(R, t) - R.stock[t] - Math.max(0, prodR[t]) * T.nightH));
+  const pick = (amount, room, needAmount) => { const st = clone(R); deliver(st, amount, 0, [0, 0, 0, 0], needAmount); const a = st.stock.map((v, t) => Math.min(room[t], Math.max(0, v - R.stock[t]))); return a; };
+  const amtNow = pick(Math.min(rate * T.visitH, m.batch), roomV), amtNight = pick(Math.min(rate * (T.nightH + 1), m.batch), roomN, rate * (T.nightH + 1));
+  const totNow = amtNow.reduce((a, b) => a + b, 0), totNight = amtNight.reduce((a, b) => a + b, 0);
+  if (T.mode === 'route') {
+    // fixed hourly route: day amount = the share; night amount = what fits until morning, spread over the night hours
+    const dayAmt = pick(Math.min(rate, m.batch), [0, 1, 2, 3].map(t => Math.max(0, capT(R, t) - R.stock[t] - Math.max(0, prodR[t]))));
+    const roomTot = roomN.reduce((a, b) => a + b, 0), nightRate = Math.min(rate, roomTot / Math.max(1, T.nightH));
+    const nightAmt = pick(Math.min(nightRate, m.batch), roomN.map(r => r / Math.max(1, T.nightH)), nightRate * T.nightH);
+    const dTot = dayAmt.reduce((a, b) => a + b, 0), nTot = nightAmt.reduce((a, b) => a + b, 0);
+    const bedH = Math.floor(bed), wakeH = (bedH + Math.ceil(T.nightH)) % 24; const hh = x => String(x).padStart(2, '0') + ':00';
+    const same = nTot >= 0.8 * dTot;
+    h += `<div class="card"><h2>נתיב מסחר קבוע</h2><p class="note" style="margin-top:0">לפי נתח של ${T.share}% (${nf(rate)} לשעה), המלאי והקיבולת של ${vn(R)} כפי שהודבקו. הכמויות לכל משלוח, פעם בשעה.</p>`;
+    h += sendBox(same ? `נתיב אחד, 24 שעות ביממה` : `נתיב יום (${hh(wakeH)}–${hh(bedH)})`, same ? nightAmt : dayAmt, `${nf(same ? nTot : dTot)} למשלוח · ${Math.ceil((same ? nTot : dTot) / m.cap)} סוחרים${m.travel != null ? ` · ${(m.travel * 60).toFixed(0)} דקות לכיוון` : ''}.${same ? ` הכמות הזו נכנסת גם בלילה (${T.nightH} שעות) בלי שהמחסן יתמלא, אז נתיב אחד מספיק.` : ''}`);
+    if (!same) h += sendBox(`נתיב לילה (${hh(bedH)}–${hh(wakeH)})`, nightAmt, `${nf(nTot)} למשלוח. בלילה הכפר לא בונה, אז המחסן והאסם צריכים להכיל ${T.nightH} משלוחים + הייצור שלו (${prodR.map(nf).join('/')} לשעה). ${nTot < 1 ? 'אין מקום – עצור את הנתיב בלילה, או שדרג מחסן/אסם (ראה למטה).' : 'אם לא רוצים שני נתיבים: נתיב אחד בכמות הלילה, או עצירה בלילה.'}`);
+    h += `<p class="note">כשהכפר מתקדם (מחסן גדול יותר, צעדים יקרים יותר) הכמויות משתנות – הדבק מחדש פעם ביום-יומיים ועדכן את הנתיב. ${m.round != null && m.round > 1 ? `שים לב: הסוחרים חוזרים אחרי ${(m.round * 60).toFixed(0)} דקות, אז נתיב שעתי צריך לכל היותר ${Math.floor(m.n / Math.ceil(m.round))} סוחרים לכל משלוח.` : ''}</p></div>`;
+  } else {
+    h += `<div class="card"><h2>מה לשלוח</h2><p class="note" style="margin-top:0">לפי נתח של ${T.share}% (${nf(rate)} לשעה), המלאי והקיבולת של ${vn(R)} כפי שהודבקו, והצעד הבא שלו בסולם הייצור.</p>`;
+    h += sendBox(`עכשיו (עד הפעם הבאה בעוד ${T.visitH} שעות)`, amtNow, `${nf(totNow)} סה"כ · ${Math.ceil(totNow / m.cap)} סוחרים${m.travel != null ? ` · מגיע בעוד ${(m.travel * 60).toFixed(0)} דקות` : ''}. מוגבל ע"י: ${totNow < rate * T.visitH - 1 ? 'מקום במחסן/אסם של המקבל' : 'הנתח שבחרת'}.`);
+    h += sendBox(`לפני השינה (${T.bed}, ${T.nightH} שעות בלי מגע)`, amtNight, `${nf(totNight)} סה"כ · ${Math.ceil(totNight / m.cap)} סוחרים. מחושב כך שהמחסן והאסם לא יתמלאו עד הבוקר כולל הייצור של הכפר עצמו (${prodR.map(nf).join('/')} לשעה).`);
+  }
+  h += `<div class="card">`;
+  h += `<h3>הצעדים הבאים ב-${vn(R)} (סולם ייצור)</h3><div class="tbl"><table><thead><tr><th>מה</th><th>שדרוג</th><th class="n">עץ</th><th class="n">חמר</th><th class="n">ברזל</th><th class="n">יבול</th><th class="n">החזר (שעות)</th></tr></thead><tbody>`;
+  for (const s of ss.slice(0, 6)) h += `<tr><td>${s.label}</td><td><span dir="ltr">${s.from}→${s.to}</span></td>${s.cost.map(c => `<td class="n">${nf(c)}</td>`).join('')}<td class="n">${s.payback ? nf(s.payback) : '—'}</td></tr>`;
+  h += `</tbody></table></div></div>`;
+  // --- storage
+  const need = [0, 1, 2, 3].map(t => Math.max(...ss.slice(0, 3).map(s => s.cost[t]), 0));
+  const needW = Math.max(need[0], need[1], need[2]), needG = need[3];
+  const nightW = Math.max(...[0, 1, 2].map(t => R.stock[t] + Math.max(0, prodR[t]) * T.nightH + rate * (T.nightH + 1) / 4)), nightG = R.stock[3] + Math.max(0, prodR[3]) * T.nightH + rate * (T.nightH + 1) / 4;
+  const lvlFor = c => { let l = 0; while (capOf(l) < c && l < 20) l++; return l; };
+  const upg = row.log.filter(x => x.s.kind === 'wh' || x.s.kind === 'gr');
+  h += `<div class="card"><h2>מחסן ואסם של ${vn(R)}</h2><div class="grid2">`;
+  h += `<div><h3>מחסן: רמה ${R.wh} (${nf(R.capW)})</h3><p>בשביל שלושת הצעדים הבאים צריך ${nf(needW)} → רמה <b>${lvlFor(needW)}</b>${lvlFor(needW) > R.wh ? ` <span class="chip w">לשדרג</span>` : ' <span class="chip g">מספיק</span>'}.<br>כדי שמשלוח לילה מלא ייכנס (מלאי + ייצור לילה + משלוח): ${nf(nightW)} → רמה <b>${lvlFor(nightW)}</b>.</p></div>`;
+  h += `<div><h3>אסם: רמה ${R.gr} (${nf(R.capG)})</h3><p>בשביל הצעדים הבאים: ${nf(needG)} → רמה <b>${lvlFor(needG)}</b>${lvlFor(needG) > R.gr ? ` <span class="chip w">לשדרג</span>` : ' <span class="chip g">מספיק</span>'}.<br>למשלוח לילה: ${nf(nightG)} → רמה <b>${lvlFor(nightG)}</b>.</p></div></div>`;
+  h += `<p class="note">כלל: מחסן ואסם רק עד הרמה שהצעד הבא דורש, או שמשלוח הלילה דורש – לא מעבר. ${upg.length ? `בסימולציה (${T.share}%) הכפר יצטרך בסך הכל מחסן ${Math.max(R.wh, ...upg.filter(x => x.s.kind === 'wh').map(x => x.s.to))} ואסם ${Math.max(R.gr, ...upg.filter(x => x.s.kind === 'gr').map(x => x.s.to))} עד שהוא גמור (הראשון: ${upg[0].s.label} ל-${upg[0].s.to} ביום ${(upg[0].hour / 24).toFixed(1)}, בשביל ${upg[0].s.reason}).` : 'בסימולציה לא נדרש שדרוג אחסון עד הסוף.'}</p></div>`;
+  // --- stop rule
+  h += `<div class="card"><h2>מתי להפסיק</h2><p>מפסיקים לשלוח כש-${vn(R)} גמור בייצור (שדות 10, מפעלים 5) – בסימולציה עם ${T.share}%: בעוד <b>${row.days.toFixed(1)} ימים</b>. משם הוא בונה את מבני התרבות שלו מהייצור שלו ומתחיל להחזיר.</p>`;
+  h += `<p>ולפני כן, בכל הדבקה מחדש: כל עוד ההחזר של הצעד הבא ב-${vn(R)} (${pR != null ? nf(pR) : '—'} שעות) קטן מההחזר של הצעד הבא בשדות של ${vn(S)} (${pS != null ? nf(pS) : '—'} שעות) – המשאב שווה יותר בכפר החדש. כשזה מתהפך, תפסיק. הקרופר ממשיך להתקדם בכל מקרה – הנתח הוא ממה שהוא מייצר, לא מהתוכנית שלו.</p></div>`;
+  out.innerHTML = h;
+}
+function stepsCapital(S) {   // the sender's cheapest next field step (capital: up to 20), with its own calibration
+  let best = null;
+  for (const f of S.fields) { if (f.l >= 20) continue; const c = costTot('woodcutter', f.l + 1).reduce((a, b) => a + b, 0); const mult = GOLD * (1 + 0.05 * ((S.fac[FACT[f.t]] || 0) + (f.t === 3 ? (S.fac.bakery || 0) : 0))) * S.mult[f.t]; const g = (prodAt(f.l + 1) - prodAt(f.l)) * mult; const pb = c / g; if (!best || pb < best.payback) best = { label: FNAME[f.t], from: f.l, to: f.l + 1, payback: pb }; }
+  return best;
+}
+['from', 'to', 'toLevel', 'visitH', 'nightH', 'bed', 'ret', 'mode'].forEach(id => $(id).addEventListener('change', () => { readUI(); render(); }));
+$('share').addEventListener('input', () => { T.auto = false; $('shareLbl').textContent = $('share').value + '%'; readUI(); render(); });
+$('shareAuto').addEventListener('click', () => { T.auto = true; save(); render(); });
+fill(); render();
+</script>
+</body>
+</html>

@@ -67,7 +67,7 @@ li.done{opacity:.35;text-decoration:line-through}
 <body>
 
 <div class="wrap" dir="rtl" lang="he">
-  <nav class="sitenav"><a href="index.html" aria-current="page">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html">סולם נק"ת</a></nav>
+  <nav class="sitenav"><a href="index.html" aria-current="page">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html">סולם נק"ת</a><a href="transfers.html">משלוחים</a><span id="syncbar"></span></nav>
   <header>
     <h1>סדר בניית בירת קרופר 15</h1>
     <p class="sub">לפי מחשבון Cropcalc T4.4. לחיצה על שלב מסמנת אותו כבוצע, והסימון נשמר במכשיר שלך.</p>
@@ -108,6 +108,7 @@ li.done{opacity:.35;text-decoration:line-through}
 </div>
 
 <script src="config.js"></script>
+<script src="sync.js"></script>
 
 <script>
 // Raw orders pulled from the calculator (15 crop, capital). c=crop field, m=flour mill, b=bakery, h=hero's mansion, w=waterworks; token = building+new level, *n = repeated.
@@ -163,7 +164,7 @@ const KEY1="cropOrder.v1", KEY2="cropOrder.v2", STALE_DAYS=14;
 const TRACK_URL=(window.TRACK_URL||"").trim();
 const plain=h=>h.replace(/<[^>]+>/g,"");
 let store={settings:{tribe:"0",gold:"1",o:["50","50","50"]},progress:{},id:""};
-const save=()=>{try{localStorage.setItem(KEY2,JSON.stringify(store));}catch(e){}};
+const save=()=>{try{localStorage.setItem(KEY2,JSON.stringify(store));if(window.TSync)TSync.touch(KEY2);}catch(e){}};
 try{
   const raw2=localStorage.getItem(KEY2);
   if(raw2) store=Object.assign(store,JSON.parse(raw2));
