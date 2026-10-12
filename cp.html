@@ -95,7 +95,7 @@ tr.done td { color: var(--muted); opacity: .55; }
 
   <div class="card">
     <h2>מה הכי משתלם עכשיו</h2>
-    <p class="note" style="margin-top:0">שלושת השדרוגים הבאים בכל מבנה, כל אחד מדורג בנפרד לפי משאבים לנק"ת (אז שוק 10→11 ו-11→12 יכולים להופיע שניהם למעלה). כשרמה לא מוסיפה נק"ת (נקיק 1→2, למשל) מוצגת קפיצה עד הרמה שכן מוסיפה. "בניתי" מעלה את הרמה ומדרג מחדש.</p>
+    <p class="note" style="margin-top:0">שלושת הצעדים הבאים בכל מבנה, כל צעד הוא רמה אחת או המינימום עד שנוספת נק"ת. צעד לא מדורג מעל הצעד שהוא תלוי בו, וכשההמשך משפר את המחיר (נקיק 7→9 ואז 9→10) זה מצוין בסוגריים. כשרמה לא מוסיפה נק"ת (נקיק 1→2, למשל) מוצגת קפיצה עד הרמה שכן מוסיפה. "בניתי" מעלה את הרמה ומדרג מחדש.</p>
     <div class="tbl"><table class="rank"><thead><tr><th>#</th><th>מבנה</th><th>שדרוג</th><th class="n">עלות</th><th class="n">+נק"ת/יום</th><th class="n">משאבים לנק"ת/יום</th><th></th></tr></thead><tbody id="rankBody"></tbody></table></div>
   </div>
 
@@ -388,22 +388,32 @@ function nextOptions() {
       demolish = lowestCranny; cp0 = B.cranny.levels[lowestCranny - 1].cp_per_day;   // we lose that cranny's CP
     }
     // up to 3 CP-adding steps per building, each priced on its own (the 2nd and 3rd assume the previous one was built)
-    let from = cur, steps = 0;
+    let from = cur, steps = 0; const chain = [];
     for (let l = cur + 1; l <= Math.min(b.max_level, 20) && steps < 3; l++) {
       cost += b.levels[l - 1].cost_total;
       const dcp = b.levels[l - 1].cp_per_day - cp0;
       if (dcp > 0) {
-        out.push({ key, label: demolish ? `הרוס נקיק ${demolish} ← ${label}` : label, idx, from, to: l, cost, dcp, resPerCp: cost / dcp, cp0, demolish: steps === 0 ? demolish : null, step: steps });
+        chain.push({ key, label: demolish ? `הרוס נקיק ${demolish} ← ${label}` : label, idx, from, to: l, cost, dcp, resPerCp: cost / dcp, cp0, demolish: steps === 0 ? demolish : null, step: steps });
         steps++; from = l; cost = 0; cp0 = b.levels[l - 1].cp_per_day; demolish = null;
       }
     }
+    // ranking price: a step may not rank above the step it depends on (rank >= predecessor's rank), and the first
+    // step of a chain is priced by the best cumulative deal reachable through its successors (7→9 + 9→10 together)
+    for (let i = 0; i < chain.length; i++) {
+      let c = 0, d = 0, best = Infinity, bestTo = chain[i].to;
+      for (let j = i; j < chain.length; j++) { c += chain[j].cost; d += chain[j].dcp; if (c / d < best) { best = c / d; bestTo = chain[j].to; } }
+      chain[i].rankPrice = best; chain[i].bestTo = bestTo;
+    }
+    for (let i = 1; i < chain.length; i++) chain[i].rankPrice = Math.max(chain[i].rankPrice, chain[i - 1].rankPrice);
+    for (let i = 0; i < chain.length; i++) chain[i].seq = i;
+    out.push(...chain);
   };
   for (const k of visibleKeys()) {
     if (k === 'cranny') { if ($('noCranny').checked) continue; const cr = (L.crannies || []).slice(); if (!cr.length) cr.push(0); cr.forEach((c, i) => consider('cranny', c, `נקיק ${i + 1}`, i)); if (cr.length < 7 && cr.every(c => c > 0) && freeSlots > 0) consider('cranny', 0, `נקיק חדש`, cr.length); }
     else consider(k, L[k] || 0, NAMES[k] || k, 0);
   }
   if ($('showFields').checked) { const ft = fieldTypes(); for (let i = 0; i < 18; i++) consider(FIELD_KEYS[ft[i]], L['f' + i] || 0, `${NAMES[FIELD_KEYS[ft[i]]]} (משבצת ${i + 1})`, i); }
-  out.sort((a, b) => a.resPerCp - b.resPerCp);
+  out.sort((a, b) => (a.rankPrice - b.rankPrice) || (a.key === b.key && a.idx === b.idx ? a.seq - b.seq : a.resPerCp - b.resPerCp));
   return out;
 }
 
@@ -428,7 +438,7 @@ function renderRank() {
   const celEff = cpv > 0 ? cel / Math.min(500, cpv) : null;
   let h = '';
   opts.slice(0, 40).forEach((o, i) => {
-    h += `<tr${o.step ? ' style="opacity:.8"' : ''}><td>${i + 1}</td><td class="name">${o.label}${o.step ? ' <span class="note">(אחרי הקודם)</span>' : ''}</td><td><span dir="ltr">${o.from}→${o.to}</span></td><td class="n">${nf(o.cost)}</td><td class="n">+${o.dcp}</td><td class="n eff">${nf(o.resPerCp)}</td><td><button class="small" data-built="${i}">בניתי</button></td></tr>`;
+    h += `<tr${o.step ? ' style="opacity:.8"' : ''}><td>${i + 1}</td><td class="name">${o.label}${o.step ? ' <span class="note">(אחרי הקודם)</span>' : ''}</td><td><span dir="ltr">${o.from}→${o.to}</span></td><td class="n">${nf(o.cost)}</td><td class="n">+${o.dcp}</td><td class="n eff">${nf(o.resPerCp)}${o.bestTo > o.to ? ` <span class="note">(עד ${o.bestTo}: ${nf(o.rankPrice)})</span>` : ''}</td><td><button class="small" data-built="${i}">בניתי</button></td></tr>`;
   });
   $('rankBody').innerHTML = h || '<tr><td colspan="7">אין שדרוגים.</td></tr>';
   $('rankBody').querySelectorAll('[data-built]').forEach(btn => btn.addEventListener('click', () => { const o = opts[+btn.dataset.built]; applyBuilt(o); }));
