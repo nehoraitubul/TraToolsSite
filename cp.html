@@ -41,7 +41,6 @@ th { font-weight: 700; color: var(--fg); font-size: .8rem; background: var(--acc
 td.n, th.n { text-align: left; }
 tr.cur td { background: var(--accent-soft); font-weight: 500; }
 tr.done td { color: var(--muted); opacity: .55; }
-tr.best td:first-child { border-inline-start: 3px solid var(--cp); }
 .eff { color: var(--cp); font-weight: 500; }
 .tbl { overflow-x: auto; }
 .nav { z-index: 5; background: var(--surface); padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 6px; border: 2px solid var(--accent); border-radius: 10px; margin-bottom: 14px; box-shadow: 0 4px 10px rgba(0,0,0,.08); }
@@ -76,12 +75,12 @@ tr.best td:first-child { border-inline-start: 3px solid var(--cp); }
   <div class="card">
     <div class="row2">
       <label class="f">שבט<select id="tribe"><option value="gauls">גאלים</option><option value="teutons">טאוטונים</option><option value="romans">רומאים</option><option value="egyptians">מצרים</option><option value="huns">הונים</option></select></label>
-      <label class="f">ימים עד שצריך את הנק"ת<input type="number" id="days" min="1" max="60" value="7"></label>
+      <label class="c"><input type="checkbox" id="noCranny"> בלי נקיקים (לא להציע נקיקים)</label>
       <label class="c"><input type="checkbox" id="showFields" checked> כולל שדות</label>
       <label class="c"><input type="checkbox" id="fromMine" checked> בטבלאות: הסתר רמות שכבר בניתי</label>
       <label class="c"><input type="checkbox" id="showRare"> מבנים נדירים</label>
     </div>
-    <p class="note" style="margin:8px 0 0">"משאבים לנק"ת" = עלות השדרוג חלקי הנק"ת שהוא יוסיף עד היעד (נק"ת ליום × הימים שנותרו). מספר נמוך = משתלם. חגיגה קטנה מופיעה לצידם להשוואה: היא נותנת את ייצור הכפר היומי פעם אחת.</p>
+    <p class="note" style="margin:8px 0 0">"משאבים לנק"ת" = עלות השדרוג חלקי כמה נק"ת ליום הוא מוסיף. מספר נמוך = משתלם. מבנה שלא עומד בדרישות (למשל מנסרה בלי יער 10) לא מוצע. כשאין משבצת פנויה, ההצעה למבנה חדש כוללת הריסת הנקיק הנמוך ביותר, והנק"ת שלו יורדות מהחישוב.</p>
   </div>
 
   <div class="card">
@@ -96,15 +95,15 @@ tr.best td:first-child { border-inline-start: 3px solid var(--cp); }
 
   <div class="card">
     <h2>מה הכי משתלם עכשיו</h2>
-    <p class="note" style="margin-top:0">השדרוג הבא בכל מבנה, מדורג לפי משאבים לנק"ת. כשרמה לא מוסיפה נק"ת (נקיק 1→2, למשל) מוצגת קפיצה עד הרמה שכן מוסיפה. "בניתי" מעלה את הרמה ומדרג מחדש.</p>
-    <div class="tbl"><table class="rank"><thead><tr><th>#</th><th>מבנה</th><th>שדרוג</th><th class="n">עלות</th><th class="n">+נק"ת/יום</th><th class="n">משאבים לנק"ת</th><th></th></tr></thead><tbody id="rankBody"></tbody></table></div>
+    <p class="note" style="margin-top:0">שלושת השדרוגים הבאים בכל מבנה, כל אחד מדורג בנפרד לפי משאבים לנק"ת (אז שוק 10→11 ו-11→12 יכולים להופיע שניהם למעלה). כשרמה לא מוסיפה נק"ת (נקיק 1→2, למשל) מוצגת קפיצה עד הרמה שכן מוסיפה. "בניתי" מעלה את הרמה ומדרג מחדש.</p>
+    <div class="tbl"><table class="rank"><thead><tr><th>#</th><th>מבנה</th><th>שדרוג</th><th class="n">עלות</th><th class="n">+נק"ת/יום</th><th class="n">משאבים לנק"ת/יום</th><th></th></tr></thead><tbody id="rankBody"></tbody></table></div>
   </div>
 
   <div class="nav" id="nav"></div>
   <div class="jump"><b>קפוץ למבנה</b><select id="jumpSel" aria-label="קפוץ למבנה"></select><button id="toTop" type="button">↑ למעלה</button></div>
   <div id="tables"></div>
 
-  <p class="note" style="margin-top:24px">גרסה 2026-10-11</p>
+  <p class="note" style="margin-top:24px">גרסה 2026-10-12</p>
 </div>
 
 <script>// Travian paste importer: recognises pasted page HTML / text and extracts the village state.
@@ -350,8 +349,8 @@ const $ = id => document.getElementById(id);
 const KEY = 'tt-cp-levels-v1';
 let L = {};                   // building levels (crannies: 'cranny' = highest; fields: 'f0'..'f17' + types in FT)
 let FT = null;                // field types per slot (default 4-4-4-6)
-function load() { try { const o = JSON.parse(localStorage.getItem(KEY)); if (o) { L = o.L || {}; FT = o.FT || null; if (o.tribe) $('tribe').value = o.tribe; if (o.days) $('days').value = o.days; } } catch (e) {} }
-function save() { try { localStorage.setItem(KEY, JSON.stringify({ L, FT, tribe: $('tribe').value, days: +$('days').value })); } catch (e) {} }
+function load() { try { const o = JSON.parse(localStorage.getItem(KEY)); if (o) { L = o.L || {}; FT = o.FT || null; if (o.tribe) $('tribe').value = o.tribe; if (o.noCranny) $('noCranny').checked = true; } } catch (e) {} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify({ L, FT, tribe: $('tribe').value, noCranny: $('noCranny').checked })); } catch (e) {} }
 function fieldTypes() { if (FT && FT.length === 18) return FT; const ft = []; [4, 4, 4, 6].forEach((n, t) => { for (let i = 0; i < n; i++) ft.push(t); }); return ft; }
 function tribeOk(key) { const b = B[key]; if (!b) return false; if (b.tribe && b.tribe !== $('tribe').value) return false; if (Object.values(WALL).includes(key) && key !== WALL[$('tribe').value]) return false; return true; }
 function visibleKeys() { return ORDER.filter(k => B[k] && tribeOk(k) && ($('showRare').checked || !RARE.has(k))); }
@@ -365,20 +364,42 @@ function cpvNow() {
 }
 
 // --- next upgrade options from current levels (jump to the next level that adds CP)
+const NO_SLOT = new Set(['rally_point', 'palisade', 'city_wall', 'earth_wall', 'stone_wall', 'makeshift_wall']);
+function maxField(t) { const ft = fieldTypes(); let m = 0; for (let i = 0; i < 18; i++) if (ft[i] === t && (L['f' + i] || 0) > m) m = L['f' + i]; return m; }
+function levelOf(key) { const t = FIELD_KEYS.indexOf(key); if (t >= 0) return maxField(t); if (key === 'cranny') return Math.max(0, ...(L.crannies || [0])); return L[key] || 0; }
+function missingPrereqs(key) { return Object.entries(B[key].prerequisites || {}).filter(([pk, pl]) => levelOf(pk) < pl).map(([pk, pl]) => `${NAMES[pk] || pk} ${pl}`); }
+function slotsUsed() { let n = 0; for (const k in L) if (!k.startsWith('f') && k !== 'crannies' && B[k] && !NO_SLOT.has(k) && L[k] > 0) n++; return n + (L.crannies || []).filter(c => c > 0).length; }
+let hiddenByPrereq = [];
 function nextOptions() {
-  const days = Math.max(1, +$('days').value || 7);
-  const out = [];
+  const out = []; hiddenByPrereq = [];
+  const freeSlots = 20 - slotsUsed();
+  const crs = (L.crannies || []).filter(c => c > 0);
+  const lowestCranny = crs.length ? Math.min(...crs) : null;
   const consider = (key, cur, label, idx) => {
     const b = B[key]; if (!b) return;
+    if (cur === 0 && !FIELD_KEYS.includes(key)) {
+      const miss = missingPrereqs(key);
+      if (miss.length) { hiddenByPrereq.push(`${label}: ${miss.join(', ')}`); return; }
+    }
     let cost = 0, cp0 = cur > 0 ? b.levels[cur - 1].cp_per_day : 0;
-    for (let l = cur + 1; l <= Math.min(b.max_level, 20); l++) {
+    let demolish = null;
+    if (cur === 0 && !FIELD_KEYS.includes(key) && !NO_SLOT.has(key) && freeSlots <= 0) {
+      if (key === 'cranny' || lowestCranny == null) return;
+      demolish = lowestCranny; cp0 = B.cranny.levels[lowestCranny - 1].cp_per_day;   // we lose that cranny's CP
+    }
+    // up to 3 CP-adding steps per building, each priced on its own (the 2nd and 3rd assume the previous one was built)
+    let from = cur, steps = 0;
+    for (let l = cur + 1; l <= Math.min(b.max_level, 20) && steps < 3; l++) {
       cost += b.levels[l - 1].cost_total;
       const dcp = b.levels[l - 1].cp_per_day - cp0;
-      if (dcp > 0) { out.push({ key, label, idx, from: cur, to: l, cost, dcp, resPerCp: cost / (dcp * days), cp0 }); break; }
+      if (dcp > 0) {
+        out.push({ key, label: demolish ? `הרוס נקיק ${demolish} ← ${label}` : label, idx, from, to: l, cost, dcp, resPerCp: cost / dcp, cp0, demolish: steps === 0 ? demolish : null, step: steps });
+        steps++; from = l; cost = 0; cp0 = b.levels[l - 1].cp_per_day; demolish = null;
+      }
     }
   };
   for (const k of visibleKeys()) {
-    if (k === 'cranny') { const cr = (L.crannies || []).slice(); if (!cr.length) cr.push(0); cr.forEach((c, i) => consider('cranny', c, `נקיק ${i + 1}`, i)); if (cr.length < 7 && cr.every(c => c > 0)) consider('cranny', 0, `נקיק חדש`, cr.length); }
+    if (k === 'cranny') { if ($('noCranny').checked) continue; const cr = (L.crannies || []).slice(); if (!cr.length) cr.push(0); cr.forEach((c, i) => consider('cranny', c, `נקיק ${i + 1}`, i)); if (cr.length < 7 && cr.every(c => c > 0) && freeSlots > 0) consider('cranny', 0, `נקיק חדש`, cr.length); }
     else consider(k, L[k] || 0, NAMES[k] || k, 0);
   }
   if ($('showFields').checked) { const ft = fieldTypes(); for (let i = 0; i < 18; i++) consider(FIELD_KEYS[ft[i]], L['f' + i] || 0, `${NAMES[FIELD_KEYS[ft[i]]]} (משבצת ${i + 1})`, i); }
@@ -402,21 +423,21 @@ function readLevels() {
 }
 function renderRank() {
   const opts = nextOptions();
-  const days = Math.max(1, +$('days').value || 7);
   const cpv = cpvNow();
   const cel = RULES.culture.celebration.small.cost_total;
   const celEff = cpv > 0 ? cel / Math.min(500, cpv) : null;
   let h = '';
-  opts.slice(0, 30).forEach((o, i) => {
-    h += `<tr class="${celEff != null && o.resPerCp < celEff ? 'best' : ''}"><td>${i + 1}</td><td class="name">${o.label}</td><td>${o.from}→${o.to}</td><td class="n">${nf(o.cost)}</td><td class="n">+${o.dcp}</td><td class="n eff">${nf(o.resPerCp)}</td><td><button class="small" data-built="${i}">בניתי</button></td></tr>`;
+  opts.slice(0, 40).forEach((o, i) => {
+    h += `<tr${o.step ? ' style="opacity:.8"' : ''}><td>${i + 1}</td><td class="name">${o.label}${o.step ? ' <span class="note">(אחרי הקודם)</span>' : ''}</td><td><span dir="ltr">${o.from}→${o.to}</span></td><td class="n">${nf(o.cost)}</td><td class="n">+${o.dcp}</td><td class="n eff">${nf(o.resPerCp)}</td><td><button class="small" data-built="${i}">בניתי</button></td></tr>`;
   });
   $('rankBody').innerHTML = h || '<tr><td colspan="7">אין שדרוגים.</td></tr>';
   $('rankBody').querySelectorAll('[data-built]').forEach(btn => btn.addEventListener('click', () => { const o = opts[+btn.dataset.built]; applyBuilt(o); }));
-  $('sumChips').innerHTML = `<span class="chip">הכפר מייצר ${cpv} נק"ת ליום לפי הרמות שהוזנו</span>` + (celEff != null ? `<span class="chip c">חגיגה קטנה: ${nf(cel)} תמורת ${Math.min(500, cpv)} = ${nf(celEff)} משאבים לנק"ת (פעם ב-24 שעות, דורשת עירייה)</span>` : '') + `<span class="chip">אופק: ${days} ימים</span>`;
-  const celRow = celEff != null ? `<tr><td colspan="7" class="note">שורות עם פס כתום משתלמות יותר מחגיגה קטנה (${nf(celEff)} לנק"ת) באופק של ${days} ימים.</td></tr>` : '';
-  $('rankBody').insertAdjacentHTML('afterbegin', celRow);
+  const free = 20 - slotsUsed();
+  $('sumChips').innerHTML = `<span class="chip">הכפר מייצר ${cpv} נק"ת ליום לפי הרמות שהוזנו</span><span class="chip">${free} משבצות פנויות מתוך 20</span>` + (celEff != null ? `<span class="chip c">חגיגה קטנה: ${nf(cel)} תמורת ${Math.min(500, cpv)} נק"ת חד-פעמי (${nf(celEff)} לנק"ת), פעם ב-24 שעות</span>` : '');
+  if (hiddenByPrereq.length) $('rankBody').insertAdjacentHTML('beforeend', `<tr><td colspan="7" class="note">לא מוצעים כי חסרות דרישות: ${hiddenByPrereq.join(' · ')}</td></tr>`);
 }
 function applyBuilt(o) {
+  if (o.demolish != null) { const cr = (L.crannies || []).slice(); const i = cr.indexOf(o.demolish); if (i >= 0) cr.splice(i, 1); L.crannies = cr; }
   if (FIELD_KEYS.includes(o.key)) L['f' + o.idx] = o.to;
   else if (o.key === 'cranny') { const cr = (L.crannies || []).slice(); if (o.idx < cr.length) cr[o.idx] = o.to; else cr.push(o.to); L.crannies = cr; }
   else L[o.key] = o.to;
@@ -424,7 +445,6 @@ function applyBuilt(o) {
 }
 function renderTables() {
   const keys = visibleKeys();
-  const days = Math.max(1, +$('days').value || 7);
   const navList = keys.concat($('showFields').checked ? FIELD_KEYS : []);
   $('jumpSel').innerHTML = '<option value="">בחר...</option>' + navList.map(k => `<option value="${k}">${NAMES[k] || k}</option>`).join('');
   $('nav').innerHTML = keys.map(k => `<a href="#b-${k}">${NAMES[k] || k}</a>`).join('') + ($('showFields').checked ? FIELD_KEYS.map(k => `<a href="#b-${k}">${NAMES[k]}</a>`).join('') : '');
@@ -435,11 +455,11 @@ function renderTables() {
     const cur = k === 'cranny' ? Math.max(0, ...(L.crannies || [0])) : FIELD_KEYS.includes(k) ? Math.max(0, ...fieldTypes().map((t, i) => t === FIELD_KEYS.indexOf(k) ? (L['f' + i] || 0) : 0)) : (L[k] || 0);
     const prereq = Object.entries(b.prerequisites || {}).map(([pk, pl]) => `${NAMES[pk] || pk} ${pl}`).join(', ');
     h += `<section class="bld" id="b-${k}"><div class="head"><h3>${NAMES[k] || k}${cur ? ` <span class="note">(הגבוה שלי: ${cur})</span>` : ''}</h3><span class="note">${prereq ? 'דרישות: ' + prereq : ''}${b.tribe ? ' · ' + b.tribe : ''}</span></div>`;
-    h += `<div class="tbl"><table><thead><tr><th>רמה</th><th class="n">עץ</th><th class="n">חמר</th><th class="n">ברזל</th><th class="n">יבול</th><th class="n">סה"כ</th><th class="n">נק"ת/יום</th><th class="n">+נק"ת</th><th class="n">משאבים לנק"ת</th><th class="n">אוכלוסייה</th></tr></thead><tbody>`;
+    h += `<div class="tbl"><table><thead><tr><th>רמה</th><th class="n">עץ</th><th class="n">חמר</th><th class="n">ברזל</th><th class="n">יבול</th><th class="n">סה"כ</th><th class="n">נק"ת/יום</th><th class="n">+נק"ת</th><th class="n">משאבים לנק"ת/יום</th><th class="n">אוכלוסייה</th></tr></thead><tbody>`;
     let bestEff = Infinity; const rows = [];
     for (let l = 1; l <= Math.min(b.max_level, 20); l++) {
       const lv = b.levels[l - 1];
-      const eff = lv.cp_inc > 0 ? lv.cost_total / (lv.cp_inc * days) : null;
+      const eff = lv.cp_inc > 0 ? lv.cost_total / lv.cp_inc : null;
       if (eff != null && l > cur) bestEff = Math.min(bestEff, eff);
       rows.push({ l, lv, eff });
     }
@@ -463,7 +483,7 @@ $('btnImport').addEventListener('click', () => {
   $('importMsg').textContent = msg.length ? 'יובא: ' + msg.join(', ') : 'לא זיהיתי מסך מבנים או מסך ראשי.';
   $('paste').value = ''; save(); renderAll(true);
 });
-['tribe', 'days', 'showFields', 'fromMine', 'showRare'].forEach(id => $(id).addEventListener('change', () => { save(); renderAll(true); }));
+['tribe', 'noCranny', 'showFields', 'fromMine', 'showRare'].forEach(id => $(id).addEventListener('change', () => { save(); renderAll(true); }));
 $('jumpSel').addEventListener('change', e => { const el = document.getElementById('b-' + e.target.value); if (el) el.scrollIntoView({ behavior: 'smooth' }); e.target.value = ''; });
 $('toTop').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 load(); renderAll(true);
