@@ -73,7 +73,7 @@ tr.best td { background: var(--ok-soft); font-weight: 700; }
       <label class="f">איך שולחים<select id="mode"><option value="route">נתיב מסחר קבוע (כל שעה)</option><option value="manual">ידני בכל ביקור + מנה לפני השינה</option></select></label>
     </div>
     <div class="row2" style="margin-top:8px">
-      <label class="f">אחוז מהייצור של הפידר שחוזר לקרופר כשהוא גמור<input type="number" id="ret" min="0" max="100" value="80"></label>
+      <label class="f">מה הפידר עושה כשהוא גמור (קובע כמה מהייצור חוזר לקרופר)<select id="retMode"><option value="small">חגיגות קטנות ברצף</option><option value="great">חגיגות גדולות ברצף</option><option value="none">כלום – הכל חוזר</option></select></label>
       <label class="f">נתח מייצור הקרופר שהולך לכפר החדש<span style="display:flex;gap:8px;align-items:center"><input type="range" id="share" min="0" max="100" step="5" value="30"><b id="shareLbl">30%</b><button type="button" id="shareAuto" class="small">מומלץ</button></span></label>
     </div>
     <div id="dataWarn" class="note" style="margin-top:8px"></div>
@@ -97,7 +97,7 @@ const PROD0 = 3, GOLD = 1.25, MAP = 401;
 const $ = id => document.getElementById(id);
 const nf = n => Math.round(n).toLocaleString('en-US');
 const KEY = 'tt-transfers-v1', CPKEY = 'tt-cp-v2';
-let T = { from: '', to: '', toLevel: 0, visitH: 1, nightH: 7, bed: '23:30', ret: 80, share: 30, auto: true, mode: 'route', manual: {} };
+let T = { from: '', to: '', toLevel: 0, visitH: 1, nightH: 7, bed: '23:30', share: 30, auto: true, mode: 'route', retMode: 'small', manual: {} };
 try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o) T = Object.assign(T, o); } catch (e) {}
 function save() { try { localStorage.setItem(KEY, JSON.stringify(T)); if (window.TSync) TSync.touch(KEY); } catch (e) {} }
 let CP = null; try { CP = JSON.parse(localStorage.getItem(CPKEY) || 'null'); } catch (e) {}
@@ -227,7 +227,9 @@ function evaluate(S, R, m) {
   const startHour = new Date().getHours();
   const alone = simulate(R, 0, m.batch, startHour);
   const doneSt = alone.st; const pd = prodOf(doneSt); const dailyDone = (pd.reduce((a, b) => a + b, 0) - doneSt.upkeep) * 24;
-  const ret = (+T.ret || 0) / 100;
+  // what the finished feeder keeps for itself: celebrations at town hall 10 cadence (small every 17.26h, great every 43.14h)
+  const celebPerDay = T.retMode === 'small' ? 20330 * 24 / 17.255 : T.retMode === 'great' ? 101650 * 24 / 43.137 : 0;
+  const ret = Math.max(0, 1 - celebPerDay / Math.max(1, dailyDone));
   const rows = [];
   for (let a = 0; a <= 100; a += 10) {
     const h = sTot * a / 100; const cap = m.perHour != null ? Math.min(h, m.perHour) : h;
@@ -237,7 +239,9 @@ function evaluate(S, R, m) {
   // recommended share: the smallest one that gets ~90% of the maximum time saving (after that every extra resource buys very little)
   const maxSaved = Math.max(...rows.map(r => r.saved));
   let best = rows[0]; if (maxSaved > 0.2) best = rows.find(r => r.saved >= 0.9 * maxSaved) || rows[rows.length - 1];
-  return { rows, best, alone, dailyDone, sTot, maxSaved };
+  const allCapped = rows.slice(1).every(r => r.capped);
+  if (allCapped) best = rows[1];   // the share is meaningless: whatever the merchants carry
+  return { rows, best, alone, dailyDone, sTot, maxSaved, ret, allCapped };
 }
 
 // ---------- UI
@@ -245,11 +249,11 @@ function fill() {
   const vs = villages();
   for (const id of ['from', 'to']) { const sel = $(id); sel.innerHTML = vs.length ? vs.map(v => `<option value="${v.id}">${esc(v.name)}</option>`).join('') : '<option value="">אין כפרים – הדבק בדף הסולם</option>'; }
   if (vs.length) { $('from').value = vs.some(v => v.id === T.from) ? T.from : vs[0].id; $('to').value = vs.some(v => v.id === T.to) ? T.to : (vs[1] || vs[0]).id; }
-  $('toLevel').value = T.toLevel; $('visitH').value = T.visitH; $('nightH').value = T.nightH; $('bed').value = T.bed; $('ret').value = T.ret; $('mode').value = T.mode || 'route'; $('share').value = T.share; $('shareLbl').textContent = T.share + '%';
+  $('toLevel').value = T.toLevel; $('visitH').value = T.visitH; $('nightH').value = T.nightH; $('bed').value = T.bed; $('retMode').value = T.retMode || 'small'; $('mode').value = T.mode || 'route'; $('share').value = T.share; $('shareLbl').textContent = T.share + '%';
 }
 const vn = st => `<span dir="auto">${esc(st.name)}</span>`;
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-function readUI() { T.from = $('from').value; T.to = $('to').value; T.toLevel = +$('toLevel').value || 0; T.visitH = +$('visitH').value || 1; T.nightH = +$('nightH').value || 0; T.bed = $('bed').value || '23:30'; T.ret = +$('ret').value || 0; T.mode = $('mode').value; T.share = +$('share').value; save(); }
+function readUI() { T.from = $('from').value; T.to = $('to').value; T.toLevel = +$('toLevel').value || 0; T.visitH = +$('visitH').value || 1; T.nightH = +$('nightH').value || 0; T.bed = $('bed').value || '23:30'; T.retMode = $('retMode').value; T.mode = $('mode').value; T.share = +$('share').value; save(); }
 function renderManual(S, R) {
   const box = (st) => { const m = (T.manual || {})[st.id] || {}; return `<div><b dir="auto">${esc(st.name)}</b> <span class="note">(${st.tribe}${st.x != null ? ` · ${st.x}|${st.y}` : ' · אין קואורדינטות'})</span><div class="row2" style="margin-top:4px">
     <label class="f">x<input type="number" data-m="x" data-v="${st.id}" value="${st.x ?? ''}"></label><label class="f">y<input type="number" data-m="y" data-v="${st.id}" value="${st.y ?? ''}"></label>
@@ -276,6 +280,7 @@ function render() {
   if (done(R)) { out.innerHTML = `<div class="card"><p class="big">${vn(R)} גמור בייצור (שדות 10, מפעלים 5).</p><p>מכאן הוא אמור לשלוח ל-${vn(S)}, לא לקבל. את מבני התרבות שלו בונים מהייצור שלו (דף הסולם, תפקיד פידר).</p></div>`; return; }
   const ev = evaluate(S, R, m);
   if (T.auto) { T.share = ev.best.share; $('share').value = T.share; $('shareLbl').textContent = T.share + '%'; }
+  $('share').closest('label').classList.toggle('hidden', ev.allCapped);
   const row = ev.rows.find(r => r.share === T.share) || ev.best;
   const prodS = prodOf(S); const rate = Math.min(ev.sTot * T.share / 100, m.perHour ?? Infinity);
   let h = '';
@@ -283,12 +288,19 @@ function render() {
   const ss0 = steps(R).filter(x => x.payback > 0); const pR = ss0.length ? ss0[0].payback : null; const nextS = stepsCapital(S); const pS = nextS ? nextS.payback : null;
   const worth = pR != null && (pS == null || pR < pS);
   h += `<div class="card"><h2>האם שווה, ובכמה</h2>`;
-  h += `<div class="chips"><span class="chip">${vn(S)} מייצר ${nf(ev.sTot)} לשעה נטו</span><span class="chip">${vn(R)} לבד: גמור בעוד ${ev.alone.days.toFixed(1)} ימים</span><span class="chip">גמור הוא מייצר ${nf(ev.dailyDone)} ליום, מחזיר ${T.ret}% = ${nf(ev.dailyDone * T.ret / 100)} ליום</span>${m.travel != null ? `<span class="chip">מרחק ${m.d.toFixed(1)} · ${(m.travel * 60).toFixed(0)} דק' לכיוון · ${m.n} סוחרים × ${nf(m.cap)} = ${nf(m.batch)} למנה · עד ${nf(m.perHour)} לשעה</span>` : '<span class="chip w">אין מרחק – אין תקרת סוחרים בחישוב</span>'}</div>`;
+  h += `<div class="chips"><span class="chip">${vn(S)} מייצר ${nf(ev.sTot)} לשעה נטו</span><span class="chip">${vn(R)} לבד: גמור בעוד ${ev.alone.days.toFixed(1)} ימים</span><span class="chip">גמור הוא מייצר ${nf(ev.dailyDone)} ליום, מחזיר ${Math.round(ev.ret * 100)}% = ${nf(ev.dailyDone * ev.ret)} ליום (אחרי ${T.retMode === 'none' ? 'בלי חגיגות' : T.retMode === 'great' ? 'חגיגות גדולות' : 'חגיגות קטנות'})</span>${m.travel != null ? `<span class="chip">מרחק ${m.d.toFixed(1)} · ${(m.travel * 60).toFixed(0)} דק' לכיוון · ${m.n} סוחרים × ${nf(m.cap)} = ${nf(m.batch)} למנה · עד ${nf(m.perHour)} לשעה</span>` : '<span class="chip w">אין מרחק – אין תקרת סוחרים בחישוב</span>'}</div>`;
   h += `<div class="verdict ${worth ? 'yes' : 'no'}">${worth ? `כן. משאב בצעד הבא של ${vn(R)} (${ss0[0].label} ${ss0[0].from}→${ss0[0].to}) מחזיר את עצמו ב-<b>${nf(pR)} שעות</b>; בצעד הבא של ${vn(S)} (${nextS.label} ${nextS.from}→${nextS.to}) ב-<b>${nf(pS)} שעות</b>. המשאב שווה יותר בכפר החדש.` : `לא כרגע. הצעד הבא ב-${vn(R)} מחזיר את עצמו ב-${pR != null ? nf(pR) : '—'} שעות, בקרופר ב-${pS != null ? nf(pS) : '—'} – המשאב שווה יותר אצל הקרופר.`}</div>`;
-  h += `<p><b>כמה:</b> מומלץ <b>${ev.best.share}%</b> מהייצור של ${vn(S)} (${nf(ev.best.rate)} לשעה). עד שם כל תוספת מקצרת משמעותית; מעבר לזה התועלת קטנה: ${ev.best.share}% → גמור בעוד ${ev.best.days.toFixed(1)} ימים, 100% → ${ev.rows[10].days.toFixed(1)} ימים תמורת עוד ${nf(ev.rows[10].sent - ev.best.sent)} משאבים. ההשקעה חוזרת לקרופר ${ev.best.breakEven.toFixed(1)} ימים אחרי שהכפר גמור (ב-${T.ret}% מהייצור שלו).</p>`;
-  h += `<div class="tbl"><table><thead><tr><th>נתח</th><th class="n">לשעה</th><th class="n">גמור בעוד (ימים)</th><th class="n">חיסכון (ימים)</th><th class="n">נשלח סה"כ</th><th class="n">חוזר לקרופר אחרי (ימים)</th></tr></thead><tbody>`;
-  for (const r of ev.rows) h += `<tr class="${r.share === ev.best.share ? 'best' : ''}"><td>${r.share}%${r.capped ? ' <span class="note">(סוחרים)</span>' : ''}</td><td class="n">${nf(r.rate)}</td><td class="n">${r.days.toFixed(1)}</td><td class="n">${r.saved.toFixed(1)}</td><td class="n">${nf(r.sent)}</td><td class="n">${r.share ? r.breakEven.toFixed(1) : '—'}</td></tr>`;
-  h += `</tbody></table></div><p class="note">סימולציה שעה-שעה: הכפר המקבל בונה בכל ביקור את הצעד הזול ביותר שהוא יכול להרשות לעצמו ושנכנס במחסן; בלילה אין בנייה. ${T.mode === 'route' ? 'נתיב קבוע: משלוח כל שעה, בלילה בכמות שנכנסת עד הבוקר.' : 'ידני: משלוח בכל ביקור ומנה אחת לפני השינה.'} "(סוחרים)" = הנתח גדול ממה שהסוחרים מספיקים להעביר.</p></div>`;
+  const mktNeeded = m.round != null ? Math.ceil(ev.sTot * 0.5 * 2 * m.travel / m.cap) : null;   // merchants for ~50% of the sender's production
+  if (ev.allCapped) {
+    h += `<div class="verdict no" style="font-weight:400"><b>הסוחרים הם החסם.</b> ${m.n} סוחר${m.n > 1 ? 'ים' : ''} × ${nf(m.cap)}, ${(m.travel * 60).toFixed(0)} דקות לכיוון → לכל היותר <b>${nf(m.perHour)} לשעה</b> בין שני הכפרים האלה, לא משנה איזה נתח. זה ${(100 * m.perHour / ev.sTot).toFixed(1)}% מהייצור של ${vn(S)}. עם זה ${vn(R)} גמור בעוד ${ev.rows[1].days.toFixed(1)} ימים במקום ${ev.alone.days.toFixed(1)}.<br>להגדיל: שוק ב-${vn(S)} לרמה ${Math.min(20, Math.max(m.n + 1, mktNeeded || 0))} (≈ ${nf(Math.min(20, Math.max(m.n + 1, mktNeeded || 0)) * m.cap / Math.max(0.1, m.round))} לשעה), משרד סחר, או כפר קרוב יותר.</div>`;
+  } else {
+    h += `<p><b>כמה:</b> מומלץ <b>${ev.best.share}%</b> מהייצור של ${vn(S)} (${nf(ev.best.rate)} לשעה). עד שם כל תוספת מקצרת משמעותית; מעבר לזה התועלת קטנה: ${ev.best.share}% → גמור בעוד ${ev.best.days.toFixed(1)} ימים, 100% → ${ev.rows[10].days.toFixed(1)} ימים תמורת עוד ${nf(ev.rows[10].sent - ev.best.sent)} משאבים. ההשקעה חוזרת לקרופר ${ev.best.breakEven.toFixed(1)} ימים אחרי שהכפר גמור (ב-${Math.round(ev.ret * 100)}% מהייצור שלו).</p>`;
+    h += `<div class="tbl"><table><thead><tr><th>נתח</th><th class="n">לשעה</th><th class="n">גמור בעוד (ימים)</th><th class="n">חיסכון (ימים)</th><th class="n">נשלח סה"כ</th><th class="n">חוזר לקרופר אחרי (ימים)</th></tr></thead><tbody>`;
+    let shownCap = false;
+    for (const r of ev.rows) { if (r.capped) { if (shownCap) continue; shownCap = true; h += `<tr class="${r.share <= ev.best.share ? 'best' : ''}"><td>${r.share}%–100% <span class="note">(תקרת סוחרים)</span></td><td class="n">${nf(r.rate)}</td><td class="n">${r.days.toFixed(1)}</td><td class="n">${r.saved.toFixed(1)}</td><td class="n">${nf(r.sent)}</td><td class="n">${r.breakEven.toFixed(1)}</td></tr>`; continue; } h += `<tr class="${r.share === ev.best.share ? 'best' : ''}"><td>${r.share}%</td><td class="n">${nf(r.rate)}</td><td class="n">${r.days.toFixed(1)}</td><td class="n">${r.saved.toFixed(1)}</td><td class="n">${nf(r.sent)}</td><td class="n">${r.share ? r.breakEven.toFixed(1) : '—'}</td></tr>`; }
+    h += `</tbody></table></div><p class="note">סימולציה שעה-שעה: הכפר המקבל בונה בכל ביקור את הצעד הזול ביותר שהוא יכול להרשות לעצמו ושנכנס במחסן; בלילה אין בנייה. ${T.mode === 'route' ? 'נתיב קבוע: משלוח כל שעה, בלילה בכמות שנכנסת עד הבוקר.' : 'ידני: משלוח בכל ביקור ומנה אחת לפני השינה.'}</p>`;
+  }
+  h += `</div>`;
   // --- now
   const hoursNow = new Date().getHours() + new Date().getMinutes() / 60; const bed = +T.bed.split(':')[0] + (+T.bed.split(':')[1] || 0) / 60;
   const prodR = prodOf(R); prodR[3] -= R.upkeep;
@@ -298,7 +310,16 @@ function render() {
   const pick = (amount, room, needAmount) => { const st = clone(R); deliver(st, amount, 0, [0, 0, 0, 0], needAmount); const a = st.stock.map((v, t) => Math.min(room[t], Math.max(0, v - R.stock[t]))); return a; };
   const amtNow = pick(Math.min(rate * T.visitH, m.batch), roomV), amtNight = pick(Math.min(rate * (T.nightH + 1), m.batch), roomN, rate * (T.nightH + 1));
   const totNow = amtNow.reduce((a, b) => a + b, 0), totNight = amtNight.reduce((a, b) => a + b, 0);
-  if (T.mode === 'route') {
+  const why = ev.allCapped || (m.perHour != null && rate >= m.perHour - 0.5) ? 'תקרת הסוחרים' : `הנתח שבחרת (${T.share}%)`;
+  const perSend = m.round != null ? Math.floor(m.n / Math.max(1, Math.ceil(m.round))) : m.n;   // merchants free for a send every hour
+  if (T.mode === 'route' && m.round != null && perSend < 1) {
+    // merchants come back later than an hour: a batch every round trip instead of an hourly route
+    const every = Math.ceil(m.round); const roomE = [0, 1, 2, 3].map(t => Math.max(0, capT(R, t) - R.stock[t] - Math.max(0, prodR[t]) * T.visitH));   // between batches the village builds, so only the next visit matters
+    const amt = pick(Math.min(m.batch, rate * every), roomE, rate * every); const tot = amt.reduce((a, b) => a + b, 0);
+    h += `<div class="card"><h2>מנה כל ${every} שעות</h2><p class="note" style="margin-top:0">נתיב שעתי לא אפשרי: ${m.n} סוחר${m.n > 1 ? 'ים' : ''} שחוזר${m.n > 1 ? 'ים' : ''} רק אחרי ${(m.round * 60).toFixed(0)} דקות. במקום זה – כל הסוחרים יחד, פעם ב-${every} שעות (נתיב מסחר עם חזרה כל ${every} שעות, או ידני).</p>`;
+    h += sendBox(`כל ${every} שעות`, amt, `${nf(tot)} למנה · ${Math.ceil(tot / m.cap)} סוחרים · ${(m.travel * 60).toFixed(0)} דקות לכיוון. מוגבל ע"י: ${tot < Math.min(m.batch, rate * every) - 1 ? 'מקום במחסן/אסם של המקבל' : tot >= m.batch - 1 ? 'קיבולת הסוחרים' : why}. אם המנה מגיעה בלילה – שלח לפני השינה רק את כמות הלילה (ראה מחסן ואסם למטה).`);
+    h += `</div>`;
+  } else if (T.mode === 'route') {
     // fixed hourly route: day amount = the share; night amount = what fits until morning, spread over the night hours
     const dayAmt = pick(Math.min(rate, m.batch), [0, 1, 2, 3].map(t => Math.max(0, capT(R, t) - R.stock[t] - Math.max(0, prodR[t]))));
     const roomTot = roomN.reduce((a, b) => a + b, 0), nightRate = Math.min(rate, roomTot / Math.max(1, T.nightH));
@@ -306,13 +327,13 @@ function render() {
     const dTot = dayAmt.reduce((a, b) => a + b, 0), nTot = nightAmt.reduce((a, b) => a + b, 0);
     const bedH = Math.floor(bed), wakeH = (bedH + Math.ceil(T.nightH)) % 24; const hh = x => String(x).padStart(2, '0') + ':00';
     const same = nTot >= 0.8 * dTot;
-    h += `<div class="card"><h2>נתיב מסחר קבוע</h2><p class="note" style="margin-top:0">לפי נתח של ${T.share}% (${nf(rate)} לשעה), המלאי והקיבולת של ${vn(R)} כפי שהודבקו. הכמויות לכל משלוח, פעם בשעה.</p>`;
+    h += `<div class="card"><h2>נתיב מסחר קבוע</h2><p class="note" style="margin-top:0">${nf(rate)} לשעה – מוגבל ע"י ${why}. הכמויות לכל משלוח, פעם בשעה, לפי המלאי והקיבולת של ${vn(R)} כפי שהודבקו.</p>`;
     h += sendBox(same ? `נתיב אחד, 24 שעות ביממה` : `נתיב יום (${hh(wakeH)}–${hh(bedH)})`, same ? nightAmt : dayAmt, `${nf(same ? nTot : dTot)} למשלוח · ${Math.ceil((same ? nTot : dTot) / m.cap)} סוחרים${m.travel != null ? ` · ${(m.travel * 60).toFixed(0)} דקות לכיוון` : ''}.${same ? ` הכמות הזו נכנסת גם בלילה (${T.nightH} שעות) בלי שהמחסן יתמלא, אז נתיב אחד מספיק.` : ''}`);
     if (!same) h += sendBox(`נתיב לילה (${hh(bedH)}–${hh(wakeH)})`, nightAmt, `${nf(nTot)} למשלוח. בלילה הכפר לא בונה, אז המחסן והאסם צריכים להכיל ${T.nightH} משלוחים + הייצור שלו (${prodR.map(nf).join('/')} לשעה). ${nTot < 1 ? 'אין מקום – עצור את הנתיב בלילה, או שדרג מחסן/אסם (ראה למטה).' : 'אם לא רוצים שני נתיבים: נתיב אחד בכמות הלילה, או עצירה בלילה.'}`);
-    h += `<p class="note">כשהכפר מתקדם (מחסן גדול יותר, צעדים יקרים יותר) הכמויות משתנות – הדבק מחדש פעם ביום-יומיים ועדכן את הנתיב. ${m.round != null && m.round > 1 ? `שים לב: הסוחרים חוזרים אחרי ${(m.round * 60).toFixed(0)} דקות, אז נתיב שעתי צריך לכל היותר ${Math.floor(m.n / Math.ceil(m.round))} סוחרים לכל משלוח.` : ''}</p></div>`;
+    h += `<p class="note">כשהכפר מתקדם (מחסן גדול יותר, צעדים יקרים יותר) הכמויות משתנות – הדבק מחדש פעם ביום-יומיים ועדכן את הנתיב.${m.round != null && m.round > 1 ? ` הסוחרים חוזרים אחרי ${(m.round * 60).toFixed(0)} דקות, אז לכל משלוח שעתי פנויים ${perSend} סוחרים (${nf(perSend * m.cap)}).` : ''}</p></div>`;
   } else {
-    h += `<div class="card"><h2>מה לשלוח</h2><p class="note" style="margin-top:0">לפי נתח של ${T.share}% (${nf(rate)} לשעה), המלאי והקיבולת של ${vn(R)} כפי שהודבקו, והצעד הבא שלו בסולם הייצור.</p>`;
-    h += sendBox(`עכשיו (עד הפעם הבאה בעוד ${T.visitH} שעות)`, amtNow, `${nf(totNow)} סה"כ · ${Math.ceil(totNow / m.cap)} סוחרים${m.travel != null ? ` · מגיע בעוד ${(m.travel * 60).toFixed(0)} דקות` : ''}. מוגבל ע"י: ${totNow < rate * T.visitH - 1 ? 'מקום במחסן/אסם של המקבל' : 'הנתח שבחרת'}.`);
+    h += `<div class="card"><h2>מה לשלוח</h2><p class="note" style="margin-top:0">${nf(rate)} לשעה – מוגבל ע"י ${why}. לפי המלאי והקיבולת של ${vn(R)} כפי שהודבקו והצעד הבא שלו בסולם הייצור.</p>`;
+    h += sendBox(`עכשיו (עד הפעם הבאה בעוד ${T.visitH} שעות)`, amtNow, `${nf(totNow)} סה"כ · ${Math.ceil(totNow / m.cap)} סוחרים${m.travel != null ? ` · מגיע בעוד ${(m.travel * 60).toFixed(0)} דקות` : ''}. מוגבל ע"י: ${totNow < rate * T.visitH - 1 ? 'מקום במחסן/אסם של המקבל' : why}.`);
     h += sendBox(`לפני השינה (${T.bed}, ${T.nightH} שעות בלי מגע)`, amtNight, `${nf(totNight)} סה"כ · ${Math.ceil(totNight / m.cap)} סוחרים. מחושב כך שהמחסן והאסם לא יתמלאו עד הבוקר כולל הייצור של הכפר עצמו (${prodR.map(nf).join('/')} לשעה).`);
   }
   h += `<div class="card">`;
@@ -339,7 +360,7 @@ function stepsCapital(S) {   // the sender's cheapest next field step (capital: 
   for (const f of S.fields) { if (f.l >= 20) continue; const c = costTot('woodcutter', f.l + 1).reduce((a, b) => a + b, 0); const mult = GOLD * (1 + 0.05 * ((S.fac[FACT[f.t]] || 0) + (f.t === 3 ? (S.fac.bakery || 0) : 0))) * S.mult[f.t]; const g = (prodAt(f.l + 1) - prodAt(f.l)) * mult; const pb = c / g; if (!best || pb < best.payback) best = { label: FNAME[f.t], from: f.l, to: f.l + 1, payback: pb }; }
   return best;
 }
-['from', 'to', 'toLevel', 'visitH', 'nightH', 'bed', 'ret', 'mode'].forEach(id => $(id).addEventListener('change', () => { readUI(); render(); }));
+['from', 'to', 'toLevel', 'visitH', 'nightH', 'bed', 'retMode', 'mode'].forEach(id => $(id).addEventListener('change', () => { readUI(); render(); }));
 $('share').addEventListener('input', () => { T.auto = false; $('shareLbl').textContent = $('share').value + '%'; readUI(); render(); });
 $('shareAuto').addEventListener('click', () => { T.auto = true; save(); render(); });
 fill(); render();
