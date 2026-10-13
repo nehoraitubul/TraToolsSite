@@ -2,7 +2,7 @@
 // הסיסמה לא יוצאת מהדפדפן: המפתח בשרת הוא SHA-256 של (שם משתמש + סיסמה).
 (function () {
   const URL = (window.TRACK_URL || '').trim();
-  const KEYS = ['tt-cp-v2', 'tt-sim-state-v1', 'cropOrder.v2', 'tt-transfers-v1'];
+  const KEYS = ['tt-cp-v2', 'tt-sim-state-v1', 'cropOrder.v2', 'tt-transfers-v1', 'tt-oases-v1'];
   const META = 'tt-sync-meta';
   let meta = { user: '', key: '', ts: {}, sig: {}, pending: [], last: 0 };
   try { const m = JSON.parse(localStorage.getItem(META) || 'null'); if (m && m.key) meta = Object.assign(meta, m); } catch (e) {}

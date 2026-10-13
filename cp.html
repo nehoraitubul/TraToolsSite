@@ -87,7 +87,7 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
 </head>
 <body>
 <div class="wrap">
-  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html" aria-current="page">סולם נק"ת</a><a href="transfers.html">משלוחים</a><span id="syncbar"></span></nav>
+  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html" aria-current="page">סולם נק"ת</a><a href="transfers.html">משלוחים</a><a href="oases.html">נאות</a><span id="syncbar"></span></nav>
   <h1>סולם נקודות תרבות</h1>
   <p class="sub">כל מבנה, רמה 1 עד 20: כמה עולה, כמה נק"ת ליום מוסיף, וכמה משאבים משלמים על כל נק"ת. הזן את הרמות שלך (או הדבק את מסך המבנים) וקבל את השדרוגים הכי משתלמים ממצבך הנוכחי. נתוני Travian Legends 4.6, x1.</p>
 
@@ -118,6 +118,10 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
       <textarea id="paste" placeholder="הדבק כאן..."></textarea>
       <div class="row2" style="margin-top:6px"><button id="btnImport">ייבא</button><span class="note" id="importMsg"></span></div>
     </details>
+    <details style="margin-top:6px"><summary class="note">ייבוא מקובץ HAR (DevTools, Network, סינון All, Export HAR sanitized) – כל הכפרים שביקרת בהם + המפה</summary>
+      <div class="row2" style="margin-top:6px"><input type="file" id="harFile" accept=".har,application/json"><span class="note" id="harMsg"></span></div>
+      <p class="note" style="margin:6px 0 0">הקובץ נקרא בדפדפן בלבד ולא נשלח לשום מקום. ייצא sanitized (בלי עוגיות) ואל תשלח את הקובץ לאף אחד.</p>
+    </details>
     <div class="chips" id="sumChips"></div>
   </div>
 
@@ -135,7 +139,7 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
   <div class="jump"><b>קפוץ למבנה</b><select id="jumpSel" aria-label="קפוץ למבנה"></select><button id="toTop" type="button">↑ למעלה</button></div>
   <div id="tables"></div>
 
-  <p class="note" style="margin-top:24px">גרסה 2026-10-12</p>
+  <p class="note" style="margin-top:24px">גרסה 2026-10-13</p>
 </div>
 
 <script src="config.js"></script>
@@ -159,13 +163,31 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
   const BIDI = /[‎‏‪-‮⁦-⁩ ]/g;
   const clean = s => (s || '').replace(BIDI, '');
   const num = s => { const t = clean(String(s)).replace(/[.,\s]/g, '').replace(/[−–]/g, '-'); const v = parseInt(t, 10); return isNaN(v) ? null : v; };
+  const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', minus: '−', shy: '' };
+  const unent = h => (h || '').replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e) => { if (e[0] === '#') { const c = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10); return isNaN(c) ? m : String.fromCodePoint(c); } return ENT[e.toLowerCase()] != null ? ENT[e.toLowerCase()] : m; });
+  // raw page HTML (from a HAR) -> the text a Ctrl+A copy would give, roughly: block tags become newlines
+  const imgAlt = h => h.replace(/<img\b[^>]*\balt="([^"]*)"[^>]*>/gi, ' $1 ');   // icons carry their meaning in alt (status, loot x/y)
+  const cellText = c => clean(unent(imgAlt(c).replace(/<script[\s\S]*?<\/script\s*>/gi, ' ').replace(/<svg[\s\S]*?<\/svg\s*>/gi, ' ').replace(/<[^>]+>/g, ' '))).replace(/\s+/g, ' ').trim();
+  const htmlToText = h => {
+    let x = imgAlt(h).replace(/<script[\s\S]*?<\/script\s*>/gi, ' ').replace(/<style[\s\S]*?<\/style\s*>/gi, ' ').replace(/<svg[\s\S]*?<\/svg\s*>/gi, ' ');
+    // table rows -> one line per row, cells separated by tabs (what a Ctrl+A copy gives)
+    x = x.replace(/<tr\b[^>]*>([\s\S]*?)<\/tr\s*>/gi, (m, row) => { const cells = []; const re = /<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]\s*>/gi; let c; while ((c = re.exec(row))) cells.push(cellText(c[1])); return '\n' + cells.join('\t') + '\n'; });
+    x = x.replace(/<\/(div|p|li|h\d|table|thead|tbody|section|article|ul|ol)\s*>|<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ' ');
+    return clean(unent(x)).replace(/[ \t]*\n[ \t]*/g, '\n').replace(/[ ]{2,}/g, ' ').replace(/\n{2,}/g, '\n');
+  };
   const stripTags = h => clean(h.replace(/<script[\s\S]*?<\/script\s*>/gi, ' ').replace(/<style[\s\S]*?<\/style\s*>/gi, ' ').replace(/<[^>]+>/g, ' ')).replace(/[ \t]+/g, ' ');
 
   function detect(text) {
     const t = clean(text);
     if (/id="resourceFieldContainer"/.test(t)) return 'dorf1';
     if (/id="villageContent"/.test(t) && /buildingSlot/.test(t)) return 'dorf2';
-    if (/<html|<div|<span/i.test(t) && /labelLayer/.test(t)) return 'html-unknown';
+    if (/<html|<body/i.test(t)) {   // a raw page from a HAR: decide by the text it renders to
+      const x = htmlToText(t);
+      if (/נ\.ת\/יום/.test(x)) return 'cp_html';
+      if (/חיילים שלך/.test(x) || /כוחות בכפרים/.test(x)) return 'troops_html';
+      if (/בוזז את/.test(x) || /דוח הרפתקה/.test(x)) return 'reports_html';
+      if (/labelLayer/.test(t)) return 'html-unknown';
+    }
     if (/מיומנויות/.test(t) && /נסיון/.test(t)) return 'hero_attr';
     if (/מסחר בפריטים/.test(t) && /מלאי/.test(t)) return 'hero_inv';
     if (/נ\.ת\/יום/.test(t)) return 'cp';
@@ -189,7 +211,7 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
     const out = { villages: [], activeDid: null };
     const re = /<div class="listEntry village( active)?" data-did="(\d+)"/g; let m;
     while ((m = re.exec(html))) {
-      const seg = html.slice(m.index, m.index + 2000).replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, '');
+      const seg = clean(unent(html.slice(m.index, m.index + 2500)));
       const n = seg.match(/class="name"[^>]*>([^<]+)</);
       const x = seg.match(/coordinateX"[^>]*>[^\d−-]*([−-]?\d+)/), y = seg.match(/coordinateY"[^>]*>[^\d−-]*([−-]?\d+)/);
       const v = { did: m[2], name: n ? clean(n[1]).trim() : m[2], active: !!m[1] };
@@ -207,19 +229,30 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
     while ((m = re.exec(html))) out.fields.push({ slot: +m[2], gid: +m[3], t: +m[3] - 1, l: +m[4] });
     out.fields.sort((a, b) => a.slot - b.slot);
     const tr = html.match(/resourceFieldContainer"[^>]*class="[^"]*tribe(\d)/); if (tr) out.tribe = TRIBE[+tr[1]] || null;
+    Object.assign(out, parseResourcesBlock(html));   // raw page: var resources = {production, storage, maxStorage}
     const st = {};
-    for (let i = 1; i <= 4; i++) { const r = html.match(new RegExp(`id="l${i}"[^>]*>\\s*([^<]+)<`)); if (r) st[i - 1] = num(r[1]); }
-    if (Object.keys(st).length === 4) out.stock = [st[0], st[1], st[2], st[3]];
+    for (let i = 1; i <= 4; i++) { const r = html.match(new RegExp(`id="l${i}"[^>]*>\\s*([^<]+)<`)); if (r) st[i - 1] = num(unent(r[1])); }
+    if (!out.stock && Object.keys(st).length === 4 && st[0] != null) out.stock = [st[0], st[1], st[2], st[3]];
     const wc = html.match(/class="warehouse">[\s\S]*?class="value">\s*([^<]+)/), gc = html.match(/class="granary">[\s\S]*?class="value">\s*([^<]+)/);
-    if (wc && gc) out.cap = { W: num(wc[1]), G: num(gc[1]) };
-    const fc = html.match(/id="stockBarFreeCrop"[^>]*>\s*([^<]+)/); if (fc) out.freeCrop = num(fc[1]);
-    const pi = html.indexOf('id="production"');
+    if (!out.cap && wc && gc) out.cap = { W: num(unent(wc[1])), G: num(unent(gc[1])) };
+    const fc = html.match(/id="stockBarFreeCrop"[^>]*>\s*([^<]+)/); if (out.freeCrop == null && fc) out.freeCrop = num(unent(fc[1]));
+    const pi = out.prod ? -1 : html.indexOf('id="production"');
     if (pi >= 0) { const seg = html.slice(pi, pi + 8000); const pr = []; for (let i = 1; i <= 4; i++) { const r = seg.match(new RegExp(`<i class="r${i}"[\\s\\S]*?class="num"[^>]*>\\s*([^<]+)<`)); pr.push(r ? num(r[1]) : null); } if (pr.every(v => v != null)) out.prod = pr; }
     out.queue = parseQueue(html);
     Object.assign(out, serverInfo(html));
     const vn = html.match(/class="listEntry village active"[\s\S]*?class="name"[^>]*>([^<]+)</) || html.match(/id="villageNameField"[^>]*>\s*([^<]+)/);
     if (vn) out.villageName = clean(vn[1]).trim();
     Object.assign(out, parseVillages(html));
+    return out;
+  }
+
+  function parseResourcesBlock(html) {
+    const m = html.match(/var resources\s*=\s*\{([\s\S]*?)\};/); if (!m) return {};
+    const g = k => { const r = m[1].match(new RegExp(k + '\\s*:\\s*(\\{[^}]*\\})')); if (!r) return null; try { const o = JSON.parse(r[1]); return [o.l1, o.l2, o.l3, o.l4].map(v => v == null ? null : +v).concat(o.l5 != null ? [+o.l5] : []); } catch (e) { return null; } };
+    const p = g('production'), s = g('storage'), x = g('maxStorage'); const out = {};
+    if (p) { out.prod = p.slice(0, 4); if (p.length > 4) out.freeCrop = p[4]; }
+    if (s) out.stock = s.slice(0, 4);
+    if (x) out.cap = { W: x[0], G: x[3] };
     return out;
   }
 
@@ -245,7 +278,7 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
     while ((m = re.exec(html))) {
       const aid = +m[2], gid = +m[3]; if (seen.has(aid)) continue; seen.add(aid);
       if (gid === 0) continue;
-      const seg = html.slice(m.index, m.index + 600);
+      const nxt = html.indexOf('<div class="buildingSlot', m.index + 10); const seg = html.slice(m.index, nxt > 0 ? Math.min(nxt, m.index + 6000) : m.index + 6000);
       const lv = seg.match(/data-level="(\d+)"/) || seg.match(/labelLayer">\s*(\d+)/);
       const level = lv ? +lv[1] : 0;
       const key = GID[gid] || null;
@@ -255,8 +288,9 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
       else out.buildings[key] = Math.max(out.buildings[key] || 0, level);
     }
     const tr = html.match(/buildingSlot [^"]*\b(roman|teuton|gaul|egyptian|hun)\b/); if (tr) out.tribe = { roman: 'romans', teuton: 'teutons', gaul: 'gauls', egyptian: 'egyptians', hun: 'huns' }[tr[1]];
-    const st = {}; for (let i = 1; i <= 4; i++) { const r = html.match(new RegExp(`id="l${i}"[^>]*>\\s*([^<]+)<`)); if (r) st[i - 1] = num(r[1]); }
-    if (Object.keys(st).length === 4) out.stock = [st[0], st[1], st[2], st[3]];
+    Object.assign(out, parseResourcesBlock(html));
+    const st = {}; for (let i = 1; i <= 4; i++) { const r = html.match(new RegExp(`id="l${i}"[^>]*>\\s*([^<]+)<`)); if (r) st[i - 1] = num(unent(r[1])); }
+    if (!out.stock && Object.keys(st).length === 4 && st[0] != null) out.stock = [st[0], st[1], st[2], st[3]];
     out.queue = parseQueue(html);
     Object.assign(out, serverInfo(html));
     const vn = html.match(/class="listEntry village active"[\s\S]*?class="name"[^>]*>([^<]+)</); if (vn) out.villageName = clean(vn[1]).trim();
@@ -330,10 +364,14 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
     for (let i = 0; i < lines.length; i++) {
       const l = lines[i];
       if (!/ניצחון|נצחון/.test(l)) continue;
-      const m = l.match(/(\d+)\/(\d+)\s*$/);
-      const who = lines[i + 1] || '', when = lines[i + 2] || '';
-      const vm = who.match(/^(.+?)\s+(?:בוזז|תקף)/);
-      const r = { village: vm ? vm[1].trim() : '?', loot: m ? +m[1] : null, cap: m ? +m[2] : null, when: when, losses: /עם אבידות/.test(l) };
+      // pasted text: status line, then "village בוזז את ...", then the time. Raw HTML row: all in one line, cells tab-separated.
+      const sameLine = /\s(?:בוזז|תקף)\s/.test(l); const parts = l.split('\t');
+      const m = (sameLine ? l : l).match(/(\d+)\/(\d+)/);
+      const who = sameLine ? l : (lines[i + 1] || '');
+      const when = sameLine ? (parts.length > 1 ? parts[parts.length - 1].trim() : (lines[i + 1] || '')) : (lines[i + 2] || '');
+      let village = '?'; const k = who.search(/\s(?:בוזז|תקף)\s/);
+      if (k > 0) { let pre = who.slice(0, k).split('\t').pop(); if (sameLine) pre = pre.replace(/^.*(?:\d+\/\d+|אבידות|נקרא)\s*/, ''); village = pre.trim() || '?'; }
+      const r = { village, loot: m ? +m[1] : null, cap: m ? +m[2] : null, when: when, losses: /עם אבידות/.test(l) };
       r.ageH = ageHours(when, nowClock);
       out.raids.push(r);
     }
@@ -367,6 +405,9 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
       case 'hero_attr': return parseHeroAttr(text);
       case 'hero_inv': return parseHeroInv(text);
       case 'cp': return parseCp(text);
+      case 'cp_html': return parseCp(htmlToText(text));
+      case 'troops_html': return parseTroops(htmlToText(text));
+      case 'reports_html': { const x = htmlToText(text); const si = serverInfo(text); return Object.assign(parseReports(x, si.serverClock), si); }
       case 'troops': return parseTroops(text);
       case 'reports': { const si = serverInfo(text); return Object.assign(parseReports(text, si.serverClock), si); }
       default: return { type: kind };
@@ -386,7 +427,54 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
     return chunks.map(parse).filter(r => r.type !== 'unknown');
   }
 
-  const api = { detect, parse, parseAll, parseDorf1, parseDorf2, parseVillages, parseHeroAttr, parseHeroInv, parseCp, parseTroops, parseReports, GID, HE, TRIBE, num, clean };
+  // ---------- HAR (DevTools export): pages + map tiles + map symbols, newest first per village
+  const ANIMAL = { 31: 'rat', 32: 'spider', 33: 'snake', 34: 'bat', 35: 'boar', 36: 'wolf', 37: 'bear', 38: 'crocodile', 39: 'tiger', 40: 'elephant' };
+  function parseMapTile(x) {
+    const t = clean(unent(x.text || '')), ti = x.title || '';
+    const o = { x: x.position.x, y: x.position.y, did: x.did, uid: x.uid, aid: x.aid };
+    const ks = ti.match(/\{k\.(\w+)\}/g) ? ti.match(/\{k\.(\w+)\}/g).map(k => k.slice(3, -1)) : [];
+    if (!ks.length) { o.kind = 'nature'; o.nature = clean(unent(ti)).trim(); }
+    else if (ks[0] === 'vt') { o.kind = 'valley'; o.vtype = ks[1] || null; }
+    else if (ks[0] === 'dt') { o.kind = 'village'; o.name = clean(unent(ti)).replace('{k.dt}', '').trim(); }
+    else if (ks[0] === 'fo') o.kind = 'oasis_free';
+    else if (ks[0] === 'bt') o.kind = 'oasis_taken';
+    else o.kind = ks[0];
+    o.bonus = []; let m; const bre = /\{a:r(\d)\}\s*\{a\.r\d\}\s*(\d+)%/g; while ((m = bre.exec(t))) o.bonus.push({ r: +m[1], pct: +m[2] });
+    o.animals = {}; const are = /unit u(\d+)"><\/i><span class="value[^"]*">(\d+)</g; while ((m = are.exec(t))) o.animals[ANIMAL[+m[1]] || ('u' + m[1])] = +m[2];
+    m = t.match(/\{k\.spieler\}\s*([^<\n]+?)\s*(?:<|\{|$)/); if (m) o.player = m[1].trim();
+    m = t.match(/\{k\.einwohner\}\s*(\d+)/); if (m) o.pop = +m[1];
+    m = t.match(/\{k\.allianz\}\s*([^<\n{]*)/); if (m) o.alliance = m[1].trim();
+    m = t.match(/\{a\.v(\d)\}/); if (m) o.tribe = TRIBE[+m[1]] || +m[1];
+    m = t.match(/\{b:ri1\}\s*([^<{]+?)\s*\{b\.ri1\}/); if (m) o.lastRaid = m[1].trim();
+    return o;
+  }
+  function parseHar(har) {
+    const entries = (har && har.log && har.log.entries) || [];
+    const out = { type: 'har', pages: [], tiles: {}, symbols: [], errors: [] };
+    const latest = {};   // one result per (type, village): the newest
+    for (const e of entries) {
+      try {
+        const url = e.request.url || ''; const c = e.response && e.response.content || {}; const mime = (c.mimeType || '').split(';')[0];
+        let body = c.text || ''; if (!body) continue;
+        if (c.encoding === 'base64') { try { body = typeof atob === 'function' ? decodeURIComponent(escape(atob(body))) : Buffer.from(body, 'base64').toString('utf8'); } catch (err) { continue; } }
+        const when = Date.parse(e.startedDateTime || '') || 0;
+        if (/\/api\/v1\/map\/position/.test(url) && mime === 'application/json') {
+          const d = JSON.parse(body); for (const x of (d.tiles || [])) { const o = parseMapTile(x); o.seen = when; out.tiles[o.x + '|' + o.y] = o; }
+        } else if (/\/api\/v1\/map\/info/.test(url) && mime === 'application/json') {
+          const d = JSON.parse(body); for (const el of (d.elements || [])) for (const sy of (el.symbols || [])) out.symbols.push({ x: el.position.x, y: el.position.y, type: sy.type, params: sy.parameters || {}, text: clean(unent(sy.text || '')), seen: when });
+        } else if (mime === 'text/html' && !/crossdomain/.test(url)) {
+          const r = parse(body); if (!r || r.type === 'unknown' || r.type === 'html-unknown') continue;
+          r.url = url; r.seen = when; const key = r.type + '@' + (r.villageName || '');
+          if (!latest[key] || latest[key].seen < when) latest[key] = r;
+        }
+      } catch (err) { out.errors.push(String(err).slice(0, 120)); }
+    }
+    out.pages = Object.values(latest).sort((a, b) => a.seen - b.seen);
+    out.tiles = Object.values(out.tiles);
+    return out;
+  }
+
+  const api = { detect, parse, parseAll, parseDorf1, parseDorf2, parseVillages, htmlToText, unent, parseHar, parseMapTile, parseHeroAttr, parseHeroInv, parseCp, parseTroops, parseReports, GID, HE, TRIBE, num, clean };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.TImport = api;
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
@@ -693,10 +781,10 @@ function renderTables() {
   $('tables').innerHTML = h;
 }
 function renderAll(withLevels = true) { renderTabs(); if (withLevels) renderLevels(); renderPlan(); renderRank(); renderTables(); }
-$('btnImport').addEventListener('click', () => {
-  const txt = $('paste').value; if (!txt.trim()) return;
-  const rs = TImport.parseAll(txt); let msg = [];
+function applyResults(rs) {   // shared by the paste and the HAR import
+  let msg = []; let cpInfo = null;
   for (const r of rs) {
+    if (r.type === 'cp' && r.villages && r.villages.length) { cpInfo = r; continue; }
     if (r.type !== 'dorf1' && r.type !== 'dorf2') continue;
     // tabs for every village in the sidebar; the levels go to the village that was active in the game
     // a manual tab (no id yet) becomes the pasted village instead of a duplicate tab
@@ -708,8 +796,47 @@ $('btnImport').addEventListener('click', () => {
     if (r.type === 'dorf2') { for (const k in r.buildings) L[k] = r.buildings[k]; L.crannies = r.crannies.slice(); if (r.tribe) $('tribe').value = r.tribe; msg.push(`${esc(V.name)}: מבנים ${Object.keys(r.buildings).length}`); }
     if (r.type === 'dorf1' && r.fields.length === 18) { FT = r.fields.map(f => f.t); V.FT = FT; r.fields.forEach((f, i) => { L['f' + i] = f.l; }); if (r.tribe) $('tribe').value = r.tribe; msg.push(`${esc(V.name)}: 18 שדות`); }
   }
+  if (cpInfo) {   // account-level culture info + per-village CP/day as the game reports it
+    S.account = { cpTotal: cpInfo.totalCpPerDay, nextSlot: cpInfo.nextSlot || null, owned: cpInfo.villagesOwned, slots: cpInfo.villageSlots, at: cpInfo.serverEpoch || Date.now() / 1000 };
+    for (const row of cpInfo.villages) { const v = Object.values(S.villages).find(x => x.name === row.name); if (v) v.cpGame = row.cpPerDay; }
+    msg.push(`תרבות: ${cpInfo.totalCpPerDay} ליום`);
+  }
+  return msg;
+}
+$('btnImport').addEventListener('click', () => {
+  const txt = $('paste').value; if (!txt.trim()) return;
+  const msg = applyResults(TImport.parseAll(txt));
   $('importMsg').textContent = msg.length ? 'יובא: ' + msg.join(' · ') : 'לא זיהיתי מסך מבנים או מסך ראשי.';
   $('paste').value = ''; save(); renderAll(true);
+});
+// HAR file (DevTools export): all villages visited + map tiles, in one go
+const MAPKEY = 'tt-map-v1';
+function mergeTiles(tiles, symbols) {
+  let M = { tiles: {}, adventures: [], at: 0 }; try { M = Object.assign(M, JSON.parse(localStorage.getItem(MAPKEY) || 'null') || {}); } catch (e) {}
+  for (const t of tiles) {
+    const k = t.x + '|' + t.y; const old = M.tiles[k];
+    const c = { x: t.x, y: t.y, k: t.kind, s: t.seen || Date.now() };
+    if (t.vtype) c.vt = t.vtype; else if (old && old.vt) c.vt = old.vt;   // the valley type is lost once settled: keep what we knew
+    if (t.name) c.n = t.name; if (t.player) c.p = t.player; if (t.alliance) c.al = t.alliance; if (t.pop != null) c.pop = t.pop; if (t.tribe) c.tr = t.tribe; if (t.did != null && t.did !== -1) c.did = t.did;
+    if (t.bonus && t.bonus.length) c.b = t.bonus.map(b => [b.r, b.pct]); if (t.animals && Object.keys(t.animals).length) c.a = t.animals; if (t.lastRaid) c.lr = t.lastRaid;
+    M.tiles[k] = c;
+  }
+  if (symbols) M.adventures = symbols.filter(s => s.type === 'adventure').map(s => ({ x: s.x, y: s.y, d: s.params && s.params.difficulty, s: s.seen }));
+  M.at = Date.now();
+  try { localStorage.setItem(MAPKEY, JSON.stringify(M)); } catch (e) { return 'המפה גדולה מדי לאחסון המקומי'; }
+  return null;
+}
+$('harFile').addEventListener('change', async ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  $('harMsg').textContent = 'קורא...';
+  try {
+    const txt = await f.text(); const har = JSON.parse(txt);
+    const r = TImport.parseHar(har);
+    const msg = applyResults(r.pages);
+    let mapMsg = ''; if (r.tiles.length) { const err = mergeTiles(r.tiles, r.symbols); const oas = r.tiles.filter(t => t.kind.startsWith('oasis')).length, el = r.tiles.filter(t => t.animals && t.animals.elephant).length; mapMsg = err || `מפה: ${r.tiles.length} משבצות, ${oas} נאות, ${el} עם פילים (ראה <a href="oases.html">נאות</a>)`; }
+    $('harMsg').innerHTML = (msg.length ? 'יובא: ' + msg.join(' · ') : 'לא נמצאו דפי כפר בקובץ (סינון Fetch/XHR? צריך All)') + (mapMsg ? ' · ' + mapMsg : '') + (r.errors.length ? ` · ${r.errors.length} שגיאות` : '');
+  } catch (e) { $('harMsg').textContent = 'הקובץ לא נקרא: ' + (e.message || e); }
+  ev.target.value = ''; save(); renderAll(true);
 });
 ['tribe', 'noCranny', 'showFields', 'fromMine', 'showRare'].forEach(id => $(id).addEventListener('change', () => { save(); renderAll(true); }));
 $('vName').addEventListener('change', () => { V.name = $('vName').value.trim() || V.name; $('vName').value = V.name; save(); renderTabs(); });
