@@ -616,7 +616,10 @@ function readLevels() {
   save(); renderAll(false);
 }
 function renderRank() {
-  const opts = nextOptions();
+  // a feeder follows the plan's rules also in the live list: CP buildings only, no new crannies, town hall / residence / storage capped
+  let opts;
+  if (isFeeder(V.role)) { SIM = { allow: FEEDER_ALLOW, cap: feederCap() }; try { opts = nextOptions(); } finally { SIM = null; } }
+  else opts = nextOptions();
   const cpv = cpvNow();
   const cel = RULES.culture.celebration.small.cost_total;
   const celEff = cpv > 0 ? cel / Math.min(500, cpv) : null;
@@ -625,7 +628,7 @@ function renderRank() {
     h += `<tr${o.step ? ' style="opacity:.8"' : ''}><td><button class="small" data-built="${i}">בניתי</button></td><td class="idx">${i + 1}</td><td class="name">${o.label}${o.step ? ' <span class="note">(אחרי הקודם)</span>' : ''} <span class="lvlInline" dir="ltr">${o.from}→${o.to}</span></td><td class="lvl"><span dir="ltr">${o.from}→${o.to}</span></td><td class="n">${nf(o.cost)}</td><td class="n dcp">+${o.dcp}</td><td class="n eff">${nf(o.resPerCp)}${o.bestTo > o.to ? ` <span class="note">(עד ${o.bestTo}: ${nf(o.rankPrice)})</span>` : ''}</td></tr>`;
   });
   $('rankBody').innerHTML = h || '<tr><td colspan="7">אין שדרוגים.</td></tr>';
-  $('rankNote').textContent = isFeeder(V.role) ? '— מבני תרבות בלבד; השדות והמפעלים בסולם הייצור למעלה' : '';
+  $('rankNote').textContent = isFeeder(V.role) ? '— לפי חוקי התוכנית: מבני תרבות בלבד, בלי נקיקים חדשים, עירייה/מגורים עד 10, מחסן/אסם עד 16. השדות והמפעלים בסולם הייצור למעלה' : '';
   $('rankBody').querySelectorAll('[data-built]').forEach(btn => btn.addEventListener('click', () => { const o = opts[+btn.dataset.built]; applyBuilt(o); }));
   const free = 20 - slotsUsed();
   $('sumChips').innerHTML = `<span class="chip">הכפר מייצר ${cpv} נק"ת ליום לפי הרמות שהוזנו</span><span class="chip">${free} משבצות פנויות מתוך 20</span>` + (celEff != null ? `<span class="chip c">חגיגה קטנה: ${nf(cel)} תמורת ${Math.min(500, cpv)} נק"ת חד-פעמי (${nf(celEff)} לנק"ת), כל 17–24 שעות לפי רמת העירייה</span>` : '');
