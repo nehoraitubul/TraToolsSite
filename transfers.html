@@ -58,9 +58,9 @@ tr.best td { background: var(--ok-soft); font-weight: 700; }
 </head>
 <body>
 <div class="wrap">
-  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html">סולם נק"ת</a><a href="transfers.html" aria-current="page">משלוחים</a><a href="oases.html">נאות</a><span id="syncbar"></span></nav>
+  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html">תוכנית בנייה</a><a href="transfers.html" aria-current="page">משלוחים</a><a href="oases.html">נאות</a><span id="syncbar"></span></nav>
   <h1>משלוחים לכפר חדש</h1>
-  <p class="sub">כמה לשלוח מהקרופר לכפר חדש, מתי, ועד מתי – לפי סוחרים, מרחק, מחסן ואסם של המקבל, ולילה בלי מגע. הכפרים והנתונים מגיעים מההדבקות בדף <a href="cp.html">סולם נק"ת</a> (מסך ראשי + מסך מבנים של כל כפר).</p>
+  <p class="sub">כמה לשלוח מהקרופר לכפר חדש, מתי, ועד מתי – לפי סוחרים, מרחק, מחסן ואסם של המקבל, ולילה בלי מגע. הכפרים והנתונים מגיעים מההדבקות בדף <a href="cp.html">תוכנית בנייה</a> (מסך ראשי + מסך מבנים של כל כפר).</p>
 
   <div class="card">
     <div class="row2">
@@ -83,7 +83,7 @@ tr.best td { background: var(--ok-soft); font-weight: 700; }
 
   <details class="card"><summary><b>נתוני הכפרים כפי שהדף מבין אותם</b> <span class="note">(לעריכה ידנית אם משהו חסר)</span></summary><div id="manual" class="grid2" style="margin-top:8px"></div></details>
 
-  <p class="note">הנחות: +25% ייצור (זהב) ו-NPC לאיזון סוגים; המקבל בונה שדות ומפעלים לפי שעות החזר (כמו בדף הסולם) ובניין מרכזי לפחות 5; המשלוח של הלילה הוא מנה אחת לפני השינה; סוחרים: רומאים 500 (משרד סחר +20% לרמה), גאלים 750 (+10%), טאוטונים 1,000 (+10%), מצרים 750 (+10%), הונים 500 (+10%) – מצרים/הונים לא אומתו במשחק. גרסה 2026-10-13</p>
+  <p class="note">הנחות: +25% ייצור (זהב) ו-NPC לאיזון סוגים; המקבל בונה שדות ומפעלים לפי שעות החזר (כמו בדף הסולם) ובניין מרכזי לפחות 5; המשלוח של הלילה הוא מנה אחת לפני השינה; סוחרים: רומאים 500 (משרד סחר +20% לרמה), גאלים 750 (+10%), טאוטונים 1,000 (+10%), מצרים 750 (+10%), הונים 500 (+10%) – מצרים/הונים לא אומתו במשחק. גרסה 2026-10-14</p>
 </div>
 
 <script src="config.js"></script>
@@ -266,7 +266,7 @@ function renderManual(S, R) {
 function sendBox(title, amounts, note) { return `<h3>${title}</h3><div class="send">${amounts.map((a, t) => `<div><small>${RES[t]}</small><b>${nf(a)}</b></div>`).join('')}</div><p class="note" style="margin:0">${note}</p>`; }
 function render() {
   const vs = villages(); const out = $('out');
-  if (vs.length < 2) { out.innerHTML = `<div class="card"><p>צריך לפחות שני כפרים בדף <a href="cp.html">סולם נק"ת</a> (הדבקה של המסך הראשי ומסך המבנים לכל אחד). ${vs.length === 1 ? 'יש אחד.' : ''}</p></div>`; $('dataWarn').textContent = ''; return; }
+  if (vs.length < 2) { out.innerHTML = `<div class="card"><p>צריך לפחות שני כפרים בדף <a href="cp.html">תוכנית בנייה</a> (הדבקה של המסך הראשי ומסך המבנים לכל אחד). ${vs.length === 1 ? 'יש אחד.' : ''}</p></div>`; $('dataWarn').textContent = ''; return; }
   const S = vState(vs.find(v => v.id === T.from) || vs[0]), R = vState(vs.find(v => v.id === T.to) || vs[1]);
   renderManual(S, R);
   const warn = [];

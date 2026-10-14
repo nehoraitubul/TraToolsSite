@@ -52,7 +52,7 @@ td.an { white-space: normal; min-width: 14em; font-size: .85rem; }
 </head>
 <body>
 <div class="wrap">
-  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html">סולם נק"ת</a><a href="transfers.html">משלוחים</a><a href="oases.html" aria-current="page">נאות</a><span id="syncbar"></span></nav>
+  <nav class="sitenav"><a href="index.html">סדר קרופר</a><a href="simulator.html">מה לבנות עכשיו</a><a href="cp.html">תוכנית בנייה</a><a href="transfers.html">משלוחים</a><a href="oases.html" aria-current="page">נאות</a><span id="syncbar"></span></nav>
   <h1>נאות וחיות</h1>
   <p class="sub">כל הנאות שנקלטו מקובץ HAR (גלילה במפה עם DevTools פתוח): בונוס, חיות לפי סוג, מרחק מכל נקודה שתבחר. ברירת המחדל: נאות עם פילים, לפי מרחק. הנתונים נשמרים בדפדפן הזה בלבד.</p>
 
@@ -87,7 +87,7 @@ td.an { white-space: normal; min-width: 14em; font-size: .85rem; }
 
   <details class="card"><summary><b>הטקסט להעתקה</b> <span class="note">(אם ההעתקה האוטומטית לא עובדת – סמן והעתק מכאן)</span></summary><textarea id="copyBox" readonly dir="auto"></textarea></details>
 
-  <p class="note">מקור: תגובות map/position של המשחק שנשמרו ב-HAR. חיות: u31 חולדה … u40 פיל. המפה 401×401 וחוזרת על עצמה (המרחק מחושב בהתאם). גרסה 2026-10-13</p>
+  <p class="note">מקור: תגובות map/position של המשחק שנשמרו ב-HAR. חיות: u31 חולדה … u40 פיל. המפה 401×401 וחוזרת על עצמה (המרחק מחושב בהתאם). גרסה 2026-10-14</p>
 </div>
 
 <script src="config.js"></script>
@@ -516,7 +516,7 @@ $('harFile').addEventListener('change', async ev => {
     const r = TImport.parseHar(JSON.parse(await f.text()));
     const err = mergeTiles(r.tiles, r.symbols);
     const oas = r.tiles.filter(t => t.kind.startsWith('oasis')).length, el = r.tiles.filter(t => t.animals && t.animals.elephant).length;
-    $('harMsg').innerHTML = err || `נקלטו ${r.tiles.length} משבצות, ${oas} נאות, ${el} עם פילים.` + (r.pages.length ? ` יש בקובץ גם ${r.pages.length} דפי כפר – טען אותו גם ב<a href="cp.html">סולם נק"ת</a> כדי לעדכן את הכפרים.` : '');
+    $('harMsg').innerHTML = err || `נקלטו ${r.tiles.length} משבצות, ${oas} נאות, ${el} עם פילים.` + (r.pages.length ? ` יש בקובץ גם ${r.pages.length} דפי כפר – טען אותו גם ב<a href="cp.html">תוכנית בנייה</a> כדי לעדכן את הכפרים.` : '');
   } catch (e) { $('harMsg').textContent = 'הקובץ לא נקרא: ' + (e.message || e); }
   ev.target.value = ''; render();
 });
