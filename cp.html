@@ -679,13 +679,15 @@ function prodOptions() {
     const o = picks[i]; if (!o) break; const target = HM_LVL[i + held]; if (hm >= target) continue;
     const pre = missingPrereqs('hero_mansion'); if (hm === 0 && pre.length) { out.push({ kind: 'blocked', label: NAMES.hero_mansion, miss: pre }); break; }
     const cost = costRange('hero_mansion', hm, target); const gain = oasisGain(o);
-    out.push({ kind: 'hm', key: 'hero_mansion', label: `${NAMES.hero_mansion} → נווה ${o.x}|${o.y} (${oasisBonusText(o)})${o.animals ? ' – יש חיות, צריך לנקות' : ''}`, from: hm, to: target, cost, gain, payback: gain > 0 ? cost / gain : Infinity });
+    out.push({ kind: 'hm', key: 'hero_mansion', label: `${NAMES.hero_mansion} → נווה ${o.manual ? '' : o.x + '|' + o.y + ' '}(${oasisBonusText(o)})${o.animals ? ' – יש חיות, צריך לנקות' : ''}`, from: hm, to: target, cost, gain, payback: gain > 0 ? cost / gain : Infinity });
     break;   // one mansion step at a time
   }
   const live = out.filter(o => o.kind !== 'blocked').sort((a, b) => a.payback - b.payback);
   return { live, blocked: out.filter(o => o.kind === 'blocked') };
 }
 const RESN = { 1: 'עץ', 2: 'חמר', 3: 'ברזל', 4: 'יבול' };
+const OASIS_TYPES = { w1: [[1, 25]], w3: [[1, 25], [4, 25]], w4: [[2, 25]], w6: [[2, 25], [4, 25]], w7: [[3, 25]], w9: [[3, 25], [4, 25]], w10: [[4, 25]], w12: [[4, 50]] };   // the game's 8 oasis kinds
+function manualMode() { return V.oasisMode === 'manual' || (V.oasisMode !== 'map' && !oasisCandidates().length); }
 function oasisCandidates() {   // oases within 3 tiles of this village (what the mansion can take), from the map store
   if (V.x == null) return [];
   let M = null; try { M = JSON.parse(localStorage.getItem('tt-map-v1') || 'null'); } catch (e) {}
@@ -703,8 +705,9 @@ function oasisCandidates() {   // oases within 3 tiles of this village (what the
 }
 function oasisGain(o) { return (o.b || []).reduce((g, [r, pct]) => g + baseProd(r - 1) * pct / 100, 0); }   // resources per hour the bonus adds now
 function oasisBonusText(o) { return (o.b || []).map(([r, pct]) => `${RESN[r]} ${pct}%`).join(' + ') || '—'; }
-function oasisHeld() { return oasisCandidates().filter(c => c.mine); }   // oases I already hold from this village (count = mansion slots used)
+function oasisHeld() { return manualMode() ? new Array(Math.min(3, V.oasesHeldManual || 0)).fill({ manual: true }) : oasisCandidates().filter(c => c.mine); }   // oases I already hold (= mansion slots used)
 function oasisPicks() {   // the user's chosen oases (up to 3 minus the ones already held), defaulting to the best free one
+  if (manualMode()) { const sel = (V.oasesManual || []).filter(k => OASIS_TYPES[k]).map((k, i) => { const o = { key: k, manual: true, x: '', y: '', b: OASIS_TYPES[k], taken: false, animals: 0 }; o.gain = oasisGain(o); return o; }); return sel.slice(0, Math.max(0, 3 - oasisHeld().length)); }
   const cands = oasisCandidates().filter(c => !c.mine); const seen = new Set();
   const sel = (V.oases || []).map(k => cands.find(c => c.key === k)).filter(c => c && !seen.has(c.key) && seen.add(c.key));
   if (!sel.length && cands.length) { const best = cands.find(c => !c.taken && c.gain > 0); if (best) sel.push(best); }
@@ -779,9 +782,14 @@ function renderPlan() {
   // oasis picker (feeds the mansion rows of the production ladder)
   const cands = oasisCandidates(), picks = oasisPicks();
   h += `<div class="stage"><h3>נאות לאחוזת הגיבור <span class="note">— עד 3 משבצות מהכפר, לפי המפה. נווה ראשון דורש אחוזה 10, שני 15, שלישי 20. התוספת מחושבת על ייצור הבסיס שלך עכשיו וגדלה עם השדות.</span></h3>`;
-  if (V.x == null) h += `<p class="note">אין קואורדינטות לכפר – הדבק מסך ראשי.</p>`;
-  else if (!cands.length) h += `<p class="note">אין נאות במאגר סביב הכפר – טען קובץ HAR אחרי גלילה במפה סביבו (דף <a href="oases.html">נאות</a>).</p>`;
-  else {
+  const hasMap = cands.length > 0;
+  h += `<div class="row2" style="margin-bottom:6px"><label class="f">מקור<select id="oasisMode"><option value="map"${!manualMode() ? ' selected' : ''}${hasMap ? '' : ' disabled'}>מהמפה (HAR)${hasMap ? '' : ' – אין נאות במאגר סביב הכפר'}</option><option value="manual"${manualMode() ? ' selected' : ''}>ידני – אני בוחר סוג</option></select></label>${manualMode() ? `<label class="f">נאות שכבר יש לי מהכפר הזה<input type="number" id="oasesHeldManual" min="0" max="3" value="${V.oasesHeldManual || 0}"></label>` : ''}</div>`;
+  if (manualMode()) {
+    const held = oasisHeld().length; const labels = ['נווה 1 (אחוזה 10)', 'נווה 2 (אחוזה 15)', 'נווה 3 (אחוזה 20)'];
+    const cur = V.oasesManual || [];
+    const opt = (slot) => `<select data-oasism="${slot}"><option value="">— אין —</option>${Object.keys(OASIS_TYPES).map(k => `<option value="${k}"${cur[slot] === k ? ' selected' : ''}>${oasisBonusText({ b: OASIS_TYPES[k] })} · +${nf(oasisGain({ b: OASIS_TYPES[k] }))}/שעה</option>`).join('')}</select>`;
+    h += `<div class="row2">${labels.slice(held).map((lb, i) => `<label class="f">${lb}${opt(i)}</label>`).join('') || '<span class="note">שלושת המקומות באחוזה תפוסים.</span>'}</div><p class="note" style="margin:4px 0 0">התוספת לשעה = הבונוס על ייצור הבסיס שלך עכשיו (לפני +25% זהב ומפעלים); חיות בנווה לא בחישוב.</p>`;
+  } else {
     const held = oasisHeld(); if (held.length) h += `<p class="note" style="margin:0 0 4px">כבר שלך: ${held.map(c => `${c.x}|${c.y} (${oasisBonusText(c)}, +${nf(c.gain)}/שעה)`).join(' · ')}</p>`;
     const free = cands.filter(c => !c.mine);
     const opt = (slot) => `<select data-oasis="${slot}"><option value="">— אין —</option>${free.map(c => `<option value="${c.key}"${picks[slot] && picks[slot].key === c.key ? ' selected' : ''}>${c.x}|${c.y} · ${oasisBonusText(c)} · +${nf(c.gain)}/שעה${c.animals ? ` · ${c.animals} חיות` : ''}${c.taken ? ` · תפוס (${esc(c.owner || '?')})` : ''}</option>`).join('')}</select>`;
@@ -806,6 +814,9 @@ function renderPlan() {
   h += `</div>`;
   $('planBody').innerHTML = h;
   $('planBody').querySelectorAll('[data-prod]').forEach(btn => btn.addEventListener('click', () => applyProd(po.live[+btn.dataset.prod])));
+  const om = $('oasisMode'); if (om) om.addEventListener('change', () => { V.oasisMode = om.value; save(); renderAll(false); });
+  const oh = $('oasesHeldManual'); if (oh) oh.addEventListener('change', () => { V.oasesHeldManual = Math.max(0, Math.min(3, +oh.value || 0)); save(); renderAll(false); });
+  $('planBody').querySelectorAll('[data-oasism]').forEach(sel => sel.addEventListener('change', () => { V.oasesManual = [0, 1, 2].map(i => { const e = $('planBody').querySelector(`[data-oasism="${i}"]`); return e ? e.value : ''; }); save(); renderAll(false); }));
   $('planBody').querySelectorAll('[data-oasis]').forEach(sel => sel.addEventListener('change', () => { const arr = [0, 1, 2].map(i => { const e = $('planBody').querySelector(`[data-oasis="${i}"]`); return e ? e.value : ''; }).filter(Boolean); V.oases = arr; save(); renderAll(false); }));
 }
 
