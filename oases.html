@@ -37,6 +37,8 @@ th { font-weight: 700; font-size: .8rem; background: var(--accent-soft); }
 td.n, th.n { text-align: left; }
 td.el { font-weight: 700; color: var(--cp); }
 td.an { white-space: normal; min-width: 14em; font-size: .85rem; }
+td.bt { font-size: .85rem; line-height: 1.3; } td.bt b { font-size: .95rem; } td.bt .note { font-size: .75rem; } td.bt.bad { color: var(--warn); }
+#btUnits label.f input { width: 4.5em; } .uinp { display: flex; flex-direction: column; gap: 2px; font-size: .8rem; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; } .uinp b { color: var(--fg); }
 .tbl { overflow-x: auto; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
 .chip { font-size: .8rem; padding: 2px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
@@ -87,7 +89,32 @@ td.an { white-space: normal; min-width: 14em; font-size: .85rem; }
 
   <details class="card"><summary><b>הטקסט להעתקה</b> <span class="note">(אם ההעתקה האוטומטית לא עובדת – סמן והעתק מכאן)</span></summary><textarea id="copyBox" readonly dir="auto"></textarea></details>
 
-  <p class="note">מקור: תגובות map/position של המשחק שנשמרו ב-HAR. חיות: u31 חולדה … u40 פיל. המפה 401×401 וחוזרת על עצמה (המרחק מחושב בהתאם). גרסה 2026-10-14</p>
+  <h2 style="margin-top:22px">כמה לשלוח לכל נווה</h2>
+  <p class="sub">כל הנאות סביב הכפר הנבחר, ולכל אחת הקבוצה הקטנה ביותר שחוזרת <b>בלי אבדות</b> מבזיזה לפי הרכב, כמה חיות היא הורגת, וכמה צריך כדי שכולן ימותו. וגם מה קורה אם שולחים את הכוח שלך. הנוסחה: סימולטור Kirilloid (בזיזה: עיגול אבדות לכל סוג יחידה, K=1.5 בקרבות קטנים, הגנת בסיס 10, בלי מורל). <b>החיות הן נכון לרגע ה-HAR</b> – בבוקר הן יכולות להיות אחרות.</p>
+  <div class="card">
+    <div class="row2">
+      <label class="f">שבט<select id="btTribe"><option value="romans">רומאים</option><option value="teutons">טאוטונים</option><option value="gauls">גאלים</option><option value="egyptians">מצרים</option><option value="huns">הונים</option></select></label>
+      <label class="f">עד מרחק<input type="number" id="btDist" min="1" value="15"></label>
+      <label class="c"><input type="checkbox" id="btAnimals" checked> רק נאות עם חיות</label>
+      <label class="c"><input type="checkbox" id="btFree" checked> רק פנויות</label>
+      <label class="c"><input type="checkbox" id="btFeasible"> רק מה שאפשר לנקות בלי אבדות</label>
+    </div>
+    <div class="row2" style="margin-top:8px">
+      <label class="c"><input type="checkbox" id="btHero"> הגיבור משתתף</label>
+      <label class="f">כוח לחימה (מדף הגיבור)<input type="number" id="btHeroStr" min="0" step="1" value="0"></label>
+      <label class="f">בונוס התקפה %<input type="number" id="btHeroBonus" min="0" max="20" step="0.2" value="0"></label>
+      <label class="c"><input type="checkbox" id="btHeroMount"> רכוב</label>
+    </div>
+    <details style="margin-top:8px"><summary class="note">שדרוגי נפחייה והכוח שלי (לעמודת "הכוח שלי")</summary><div class="row2" id="btUnits" style="margin-top:6px"></div></details>
+    <div class="row2" style="margin-top:8px"><button type="button" class="primary" id="btCopy">העתק את התוכנית</button><span class="note" id="btMsg"></span></div>
+  </div>
+  <div class="card">
+    <div class="tbl"><table id="btTable"><thead id="btHead"></thead><tbody id="btRows"></tbody></table></div>
+    <p class="note" id="btEmpty"></p>
+    <p class="note">בכל תא: הקבוצה הקטנה ביותר <b>בלי אבדות</b> (סדר המספרים כסדר היחידות בכותרת) ו"הורג k/N" = כמה מהחיות ימותו בבזיזה הזאת. "הכל מת" = הקבוצה שהורגת את כולן בלי אבדות. "≤1" = מוכן לאבד עד יחידה אחת מכל סוג. "—" = צריך יותר מ-1,000 מכל סוג. ⏱ זמן הליכה לכיוון אחד לפי היחידה האיטית. שלל = לכל משאב (×4 בסך הכל), נכנס למלאי הגיבור גם בלי שישתתף.</p>
+  </div>
+
+  <p class="note">מקור: תגובות map/position של המשחק שנשמרו ב-HAR. חיות: u31 חולדה … u40 פיל. המפה 401×401 וחוזרת על עצמה (המרחק מחושב בהתאם). גרסה 2026-10-21</p>
 </div>
 
 <script src="config.js"></script>
@@ -426,6 +453,120 @@ td.an { white-space: normal; min-width: 14em; font-size: .85rem; }
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.TImport = api;
 })(typeof window !== 'undefined' ? window : globalThis);
 </script>
+<script>// TCombat – מודל קרב T4.6 מול חיות בנאות (ולכל קרב בלי חומה/מורל).
+// מקור הנוסחאות: הקוד הפתוח של Kirilloid (github.com/kirilloid/travian, src/model/base/combat + t3/combat/fns + t4/combat/army + t4/hero),
+// נתוני יחידות: אותו מאגר (t4 + t4.fs). מורל בוטל במשחק ב-2022 (support.travian.com/en/articles/63) – לא מחושב.
+// הנחות שמסומנות ASSUMPTION נבדקות מול דוחות אמיתיים לפני שסומכים עליהן.
+(function (root) {
+  const R = (p) => (n) => p * Math.round(n / p);
+  const roundStat = R(1e-4), roundPct = R(1e-4), roundK = R(0.0002);
+
+  // ---- יחידות: a התקפה, di/dc הגנה מול רגלים/פרשים, v מהירות, u כלכלה, p נשיאה, i רגלי
+  const COST = {"legionnaire": 400, "praetorian": 460, "imperian": 600, "ei": 1410, "ec": 2170, "clubswinger": 250, "spearman": 340, "axeman": 490, "paladin": 1005, "teutonic_knight": 1525, "phalanx": 315, "swordsman": 535, "theutates_thunder": 1090, "druidrider": 1090, "haeduan": 1965, "slave_militia": 150, "ash_warden": 420, "khopesh": 650, "anhur_guard": 1090, "resheph_chariot": 1800, "mercenary": 290, "bowman": 370, "steppe_rider": 895, "marksman": 1050, "marauder": 1760};   // עלות יחידה (סכום 4 המשאבים) – לשווי אבדות
+  const U = (id, name, a, di, dc, v, u, p, i) => ({ id, name, a, di, dc, v, u, p, i: !!i, c: COST[id] });
+  const UNITS = {
+    romans: [U('legionnaire', 'לגיונר', 40, 35, 50, 6, 1, 50, 1), U('praetorian', 'פרטוריאני', 30, 65, 35, 5, 1, 20, 1), U('imperian', 'אימפריאן', 70, 40, 25, 7, 1, 50, 1),
+      U('ei', 'אקוויטס אימפרטוריס', 120, 65, 50, 14, 3, 100, 0), U('ec', 'אקוויטס קיסריס', 180, 80, 105, 10, 4, 70, 0)],
+    teutons: [U('clubswinger', 'אלה', 40, 20, 5, 7, 1, 60, 1), U('spearman', 'חנית', 10, 35, 60, 7, 1, 40, 1), U('axeman', 'גרזן', 60, 30, 30, 6, 1, 50, 1),
+      U('paladin', 'פלאדין', 55, 100, 40, 10, 2, 110, 0), U('teutonic_knight', 'אביר טבטוני', 150, 50, 75, 9, 3, 80, 0)],
+    gauls: [U('phalanx', 'פלנקס', 15, 40, 50, 7, 1, 35, 1), U('swordsman', 'סייף', 65, 35, 20, 6, 1, 45, 1),
+      U('theutates_thunder', 'רעם תאוטטס', 90, 25, 40, 19, 2, 75, 0), U('druidrider', 'רוכב דרואיד', 45, 115, 55, 16, 2, 35, 0), U('haeduan', 'האדואן', 140, 60, 165, 13, 3, 65, 0)],
+    egyptians: [U('slave_militia', 'מיליציית עבדים', 10, 30, 20, 7, 1, 15, 1), U('ash_warden', 'שומר אפר', 30, 55, 40, 6, 1, 50, 1), U('khopesh', 'לוחם חופש', 65, 50, 20, 7, 1, 45, 1),
+      U('anhur_guard', 'משמר אנהור', 50, 110, 50, 15, 2, 50, 0), U('resheph_chariot', 'מרכבת רשף', 110, 120, 150, 10, 3, 70, 0)],
+    huns: [U('mercenary', 'שכיר חרב', 35, 40, 30, 6, 1, 50, 1), U('bowman', 'קשת', 50, 30, 10, 6, 1, 30, 1),
+      U('steppe_rider', 'רוכב ערבות', 120, 30, 15, 16, 2, 115, 0), U('marksman', 'צלף', 115, 80, 70, 16, 2, 105, 0), U('marauder', 'שודד', 180, 60, 40, 14, 3, 80, 0)],
+  };
+  const TRIBE_HE = { romans: 'רומאים', teutons: 'טבטונים', gauls: 'גאלים', egyptians: 'מצרים', huns: 'הונים' };
+  // ---- חיות: הגנה (support.travian.com + unofficialtravian), כלכלה T4, שלל לכל חיה = 40 מכל משאב לכל נקודת כלכלה (לתוך מלאי הגיבור)
+  const A = (id, name, a, di, dc, u) => ({ id, name, a, di, dc, u, bounty: 40 * u });
+  const ANIMALS = [A('rat', 'חולדה', 10, 25, 20, 1), A('spider', 'עכביש', 20, 35, 40, 1), A('snake', 'נחש', 60, 40, 60, 1), A('bat', 'עטלף', 80, 66, 50, 1), A('boar', 'חזיר בר', 50, 70, 33, 2),
+    A('wolf', 'זאב', 100, 80, 70, 2), A('bear', 'דוב', 250, 140, 200, 3), A('crocodile', 'תנין', 450, 380, 240, 3), A('tiger', 'נמר', 200, 170, 250, 3), A('elephant', 'פיל', 600, 440, 520, 5)];
+  const ANIMAL = Object.fromEntries(ANIMALS.map(a => [a.id, a]));
+  const BASE_DEF = 10;          // ASSUMPTION: הגנת הבסיס של "כפר ריק" חלה גם על נווה (Kirilloid מוסיף אותה לכל מקום קרב)
+  const LONE_MIN = 83;          // תוקף בודד עם פחות מ-83 נקודות התקפה מת תמיד (support.travian.com/en/articles/63)
+
+  // שדרוג נפחייה (T4): Kirilloid t4/combat/army.ts
+  function upgrade(unit, stat, level) { const up = unit.u / 1.007; return roundStat(stat + (stat + 300 * up / 7) * (1.007 ** level - 1) + up * 0.0021); }
+  // מקדם K לפי גודל הקרב: t3/combat/fns.ts
+  function immensity(total) { return roundK(Math.min(1.5, Math.max(1.2578, 3.7184 - 2 * total ** 0.015))); }
+
+  /**
+   * battle({tribe, units:{id:n}, upgrades:{id:lvl}, hero:{str, offBonus(%), mounted}|null, animals:{id:n}, mode:'attack'|'raid'})
+   * מחזיר: off, defI, defC, def (משוקלל+בסיס), K, x, offLoss, defLoss, losses:{id:n}, survivors, killed:{animal:n}, bounty (לכל משאב), lone, heroHealth
+   */
+  function battle(o) {
+    const list = UNITS[o.tribe] || UNITS.romans; const ups = o.upgrades || {};
+    let offI = 0, offC = 0, total = 0;
+    const nums = {};
+    for (const u of list) { const n = Math.max(0, Math.floor(+(o.units && o.units[u.id]) || 0)); if (!n) continue; nums[u.id] = n; total += n; const pts = n * upgrade(u, u.a, ups[u.id] || 0); if (u.i) offI += pts; else offC += pts; }
+    let heroStr = 0, heroBonus = 0;
+    if (o.hero && o.hero.str > 0) { heroStr = +o.hero.str; heroBonus = (+o.hero.offBonus || 0) / 100; if (o.hero.mounted) offC += heroStr; else offI += heroStr; }
+    offI *= 1 + heroBonus; offC *= 1 + heroBonus;
+    const off = offI + offC;
+    let defI = 0, defC = 0, atotal = 0; const an = {};
+    for (const a of ANIMALS) { const n = Math.max(0, Math.floor(+(o.animals && o.animals[a.id]) || 0)); if (!n) continue; an[a.id] = n; atotal += n; defI += n * a.di; defC += n * a.dc; }
+    const r = { off, offI, offC, defI, defC, total, atotal, nums, an, losses: {}, killed: {}, bounty: 0, lone: false, heroHealth: 0 };
+    if (!off) { r.offLoss = 1; r.defLoss = 0; r.def = defI + BASE_DEF; r.K = 1.5; r.x = 0; for (const k in nums) r.losses[k] = nums[k]; r.lostTotal = total; r.killedTotal = 0; r.lostValue = list.reduce((s, u) => s + (nums[u.id] || 0) * u.c, 0); r.net = -r.lostValue; return r; }
+    const infPart = roundPct(offI / off), cavPart = roundPct(offC / off);
+    const def = defI * infPart + defC * cavPart + BASE_DEF;
+    const K = immensity(total + atotal);
+    const x = (off / def) ** K;           // יחס נקודות בחזקת K
+    let offLoss, defLoss;
+    if (o.mode === 'raid') { offLoss = 1 / (1 + x); defLoss = x / (1 + x); }
+    else { offLoss = Math.min(1 / x, 1); defLoss = Math.min(x, 1); }
+    if (total === 1 && !heroStr && off < LONE_MIN) { offLoss = 1; r.lone = true; }
+    r.def = def; r.K = K; r.x = x; r.offLoss = offLoss; r.defLoss = defLoss;
+    for (const k in nums) { const s = Math.round(nums[k] * (1 - offLoss)); r.losses[k] = nums[k] - s; }   // עיגול לכל סוג יחידה (Kirilloid applyLosses)
+    for (const k in an) { const s = Math.round(an[k] * (1 - defLoss)); r.killed[k] = an[k] - s; r.bounty += r.killed[k] * ANIMAL[k].bounty; }
+    r.lostTotal = Object.values(r.losses).reduce((s, v) => s + v, 0);
+    r.lostValue = list.reduce((s, u) => s + (r.losses[u.id] || 0) * u.c, 0);   // שווי האבדות במשאבים
+    r.net = r.bounty * 4 - r.lostValue;                                        // שלל (4 משאבים) פחות אבדות
+    r.killedTotal = Object.values(r.killed).reduce((s, v) => s + v, 0);
+    r.heroHealth = heroStr ? Math.min(100, Math.round(offLoss * 100)) : 0;
+    return r;
+  }
+
+  /**
+   * minParty(ratio:{id:w}, ctx, opt) – הקבוצה הקטנה ביותר (כפולה שלמה של היחס) שעומדת בתנאי.
+   * opt.maxLoss: אבדות מותרות לכל סוג (0 = בלי אבדות). opt.killAll: גם כל החיות חייבות למות. opt.maxMult: גבול חיפוש.
+   */
+  function minParty(ratio, ctx, opt) {
+    opt = opt || {}; const maxLoss = opt.maxLoss || 0, maxMult = opt.maxMult || 1000;
+    const ids = Object.keys(ratio).filter(k => ratio[k] > 0); if (!ids.length) return null;
+    for (let m = 1; m <= maxMult; m++) {
+      const units = {}; for (const k of ids) units[k] = ratio[k] * m;
+      const r = battle(Object.assign({}, ctx, { units }));
+      if (r.lone) continue;
+      if (ids.some(k => r.losses[k] > maxLoss)) continue;
+      if (opt.killAll && r.killedTotal < r.atotal) continue;
+      return { mult: m, units, result: r };
+    }
+    return null;
+  }
+
+  // זמן הליכה (שעות) לפי היחידה האיטית בקבוצה; גיבור רגלי 7, רכוב = מהירות הסוס (ברירת מחדל 14)
+  function speedOf(tribe, units, hero) {
+    let v = Infinity; for (const u of UNITS[tribe] || []) if (units[u.id] > 0) v = Math.min(v, u.v);
+    if (hero && hero.str > 0) v = Math.min(v, hero.mounted ? (hero.speed || 14) : 7);
+    return v === Infinity ? 0 : v;
+  }
+  function carryOf(tribe, units) { let c = 0; for (const u of UNITS[tribe] || []) c += (units[u.id] || 0) * u.p; return c; }
+  // הרכבים מוכנים לכל שבט: מאוזן (כל היחידות הלוחמות), פרשים, וכל פרש לבד
+  function presets(tribe) {
+    const list = (UNITS[tribe] || UNITS.romans).filter(u => u.a >= 35); const out = [];   // יחידות התקפה בלבד (בלי פרטוריאני/חנית/פלנקס...)
+    const cav = list.filter(u => !u.i), inf = list.filter(u => u.i);
+    out.push({ id: 'all', name: list.map(u => u.name).join(' / '), ratio: Object.fromEntries(list.map(u => [u.id, 1])) });
+    out.push({ id: 'cav', name: 'פרשים: ' + cav.map(u => u.name).join(' / '), ratio: Object.fromEntries(cav.map(u => [u.id, 1])) });
+    for (const u of cav) out.push({ id: u.id, name: u.name, ratio: { [u.id]: 1 } });
+    for (const u of inf) out.push({ id: u.id, name: u.name, ratio: { [u.id]: 1 } });
+    return out;
+  }
+  function partyText(tribe, units) { const list = UNITS[tribe] || UNITS.romans; return list.filter(u => units[u.id] > 0).map(u => units[u.id]).join('-'); }
+
+  const api = { UNITS, TRIBE_HE, ANIMALS, ANIMAL, BASE_DEF, LONE_MIN, upgrade, immensity, battle, minParty, speedOf, carryOf, presets, partyText };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.TCombat = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
 <script>
 const $ = id => document.getElementById(id);
 const MAPKEY = 'tt-map-v1', CPKEY = 'tt-cp-v2', KEY = 'tt-oases-v1', MAP = 401;
@@ -434,8 +575,10 @@ const ANP = { rat: 'חולדות', spider: 'עכבישים', snake: 'נחשים'
 const ORDER = ['elephant', 'tiger', 'crocodile', 'bear', 'wolf', 'boar', 'bat', 'snake', 'spider', 'rat'];
 const RES = { 1: 'עץ', 2: 'חמר', 3: 'ברזל', 4: 'יבול' };
 let M = { tiles: {}, adventures: [], at: 0 };
-let P = { ref: '', x: null, y: null, animal: 'elephant', minCount: 1, maxDist: 60, freeOnly: true };
+let P = { ref: '', x: null, y: null, animal: 'elephant', minCount: 1, maxDist: 60, freeOnly: true, bt: null };
+const BT0 = () => ({ tribe: '', dist: 15, mode: 'attack', animalsOnly: true, freeOnly: true, hero: { on: false, str: 0, bonus: 0, mounted: false }, ups: {}, mine: {}, feasible: false });   // על נווה יש רק בזיזה (אין התקפה רגילה)
 try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o) P = Object.assign(P, o); } catch (e) {}
+if (!P.bt || typeof P.bt !== 'object') P.bt = BT0(); P.bt = Object.assign(BT0(), P.bt); P.bt.hero = Object.assign(BT0().hero, P.bt.hero || {});
 function loadMap() { try { const o = JSON.parse(localStorage.getItem(MAPKEY) || 'null'); if (o && o.tiles) M = o; } catch (e) {} }
 function saveP() { try { localStorage.setItem(KEY, JSON.stringify(P)); if (window.TSync) TSync.touch(KEY); } catch (e) {} }
 function villages() { try { const c = JSON.parse(localStorage.getItem(CPKEY) || 'null'); return c && c.order ? c.order.map(id => c.villages[id]).filter(v => v && v.x != null) : []; } catch (e) { return []; } }
@@ -482,11 +625,12 @@ function render() {
   $('empty').textContent = rows.length ? '' : (n ? 'אין נאות שמתאימות לסינון.' : '');
   $('rows').querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => copyText(lineText(rows[+b.dataset.copy], +b.dataset.copy))));
   $('copyBox').value = rows.map((t, i) => lineText(t, i)).join('\n');
+  renderBt();
 }
-async function copyText(text) {
-  $('copyBox').value = text;
-  try { await navigator.clipboard.writeText(text); $('copyMsg').textContent = 'הועתק ✓'; } catch (e) { $('copyMsg').textContent = 'לא הצלחתי להעתיק אוטומטית – העתק מהתיבה למטה'; $('copyBox').closest('details').open = true; }
-  setTimeout(() => { $('copyMsg').textContent = ''; }, 3000);
+async function copyText(text, msgId) {
+  const msg = $(msgId || 'copyMsg'); $('copyBox').value = text;
+  try { await navigator.clipboard.writeText(text); msg.textContent = 'הועתק ✓'; } catch (e) { msg.textContent = 'לא הצלחתי להעתיק אוטומטית – העתק מהתיבה'; $('copyBox').closest('details').open = true; }
+  setTimeout(() => { msg.textContent = ''; }, 3000);
 }
 $('copyAll').addEventListener('click', () => { const rows = current(); const vref = P.ref === 'manual' ? null : villages().find(v => v.id === P.ref); const refName = vref ? `${vref.name} ${coord(P.x, P.y)}` : coord(P.x, P.y); const title = `${['any', 'all', 'none'].includes(P.animal) ? 'נאות' : 'נאות עם ' + ANP[P.animal]} עד מרחק ${P.maxDist} מ-${refName}${P.freeOnly ? ', פנויות בלבד' : ''}:`; copyText([title].concat(rows.map((t, i) => lineText(t, i))).join('\n')); });
 $('refSel').addEventListener('change', () => { P.ref = $('refSel').value; saveP(); render(); });
@@ -508,6 +652,7 @@ function mergeTiles(tiles, symbols) {
   if (symbols) M.adventures = symbols.filter(s => s.type === 'adventure').map(s => ({ x: s.x, y: s.y, d: s.params && s.params.difficulty, s: s.seen }));
   M.at = Date.now();
   try { localStorage.setItem(MAPKEY, JSON.stringify(M)); } catch (e) { return 'המפה גדולה מדי לאחסון המקומי'; }
+  if (window.TSync) TSync.mapChanged(M);   // נאות וכפרים סביבי עוברים גם לטלפון
   return null;
 }
 $('harFile').addEventListener('change', async ev => {
@@ -520,6 +665,85 @@ $('harFile').addEventListener('change', async ev => {
   } catch (e) { $('harMsg').textContent = 'הקובץ לא נקרא: ' + (e.message || e); }
   ev.target.value = ''; render();
 });
+
+// ---------- כמה לשלוח לכל נווה (TCombat)
+function cpTribe() { try { const c = JSON.parse(localStorage.getItem(CPKEY) || 'null'); const v = c && c.villages && c.villages[c.cur]; return (v && v.tribe) || ''; } catch (e) { return ''; } }
+function btTribe() { return TCombat.UNITS[P.bt.tribe] ? P.bt.tribe : (TCombat.UNITS[cpTribe()] ? cpTribe() : 'romans'); }
+function cpHero() { try { const c = JSON.parse(localStorage.getItem(CPKEY) || 'null'); return c && c.account && c.account.hero || null; } catch (e) { return null; } }
+function btCtx() { const h = P.bt.hero; return { tribe: btTribe(), upgrades: P.bt.ups || {}, hero: h.on && h.str > 0 ? { str: +h.str, offBonus: +h.bonus || 0, mounted: !!h.mounted } : null, mode: 'raid' }; }
+const fmtH = h => { if (!(h > 0)) return ''; const m = Math.round(h * 60); return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`; };
+function btRows() {
+  const x = P.x, y = P.y; if (x == null || y == null) return [];
+  const out = [];
+  for (const t of Object.values(M.tiles)) {
+    if (!t.k || !t.k.startsWith('oasis')) continue;
+    if (P.bt.freeOnly && t.k !== 'oasis_free') continue;
+    const cnt = t.a ? Object.values(t.a).reduce((s, v) => s + v, 0) : 0;
+    if (P.bt.animalsOnly && !cnt) continue;
+    const d = dist(x, y, t.x, t.y); if (d > P.bt.dist) continue;
+    out.push(Object.assign({ d, cnt }, t));
+  }
+  return out.sort((p, q) => p.d - q.d);
+}
+function btCell(t, preset, ctx) {
+  const tribe = ctx.tribe, an = t.a || {}; const base = Object.assign({}, ctx, { animals: an });
+  const raid = ctx.mode === 'raid';
+  const a = TCombat.minParty(preset.ratio, base, { maxLoss: 0, killAll: !raid });
+  const b = TCombat.minParty(preset.ratio, base, { maxLoss: 1, killAll: !raid });
+  const c = raid ? TCombat.minParty(preset.ratio, base, { maxLoss: 0, killAll: true }) : null;
+  const sp = TCombat.speedOf(tribe, preset.ratio, ctx.hero); const tm = sp ? fmtH(t.d / sp) : '';
+  const txt = r => TCombat.partyText(tribe, r.units);
+  let h = '';
+  if (a) { h += `<b>${txt(a)}</b>`; if (raid) h += ` <span class="note">הורג ${a.result.killedTotal}/${a.result.atotal}</span>`; }
+  else h += '<span class="note">—</span>';
+  if (b && (!a || b.mult < a.mult)) h += `<div class="note">≤1: ${txt(b)}${raid ? ` (הורג ${b.result.killedTotal}/${b.result.atotal})` : ''}</div>`;
+  if (raid && c && (!a || c.mult > a.mult)) h += `<div class="note">הכל מת: ${txt(c)}</div>`;
+  if (tm) h += `<div class="note">⏱ ${tm}</div>`;
+  return { html: h, text: a ? txt(a) : (b ? '≤1:' + txt(b) : '—'), ok: !!a };
+}
+function mineCell(t, ctx) {
+  const units = {}; let any = false; for (const k in P.bt.mine) if (P.bt.mine[k] > 0) { units[k] = +P.bt.mine[k]; any = true; }
+  if (!any) return null;
+  const r = TCombat.battle(Object.assign({}, ctx, { units, animals: t.a || {} }));
+  const sp = TCombat.speedOf(ctx.tribe, units, ctx.hero);
+  const loss = TCombat.UNITS[ctx.tribe].filter(u => units[u.id] > 0).map(u => r.losses[u.id] || 0).join('-');
+  const html = `<b>${r.lostTotal ? 'אבדות ' + loss : 'בלי אבדות'}</b><div class="note">הורג ${r.killedTotal}/${r.atotal} · שלל ${r.bounty.toLocaleString('en-US')}×4 · נטו ${r.net >= 0 ? '+' : ''}${r.net.toLocaleString('en-US')}${r.heroHealth ? ` · גיבור −${r.heroHealth}%` : ''}</div>${sp ? `<div class="note">⏱ ${fmtH(t.d / sp)}</div>` : ''}`;
+  return { html, bad: r.lostTotal > 0 && r.net < 0, text: `${r.lostTotal ? 'אבדות ' + loss : 'בלי אבדות'}, הורג ${r.killedTotal}/${r.atotal}, שלל ${r.bounty}×4` };
+}
+function defText(t) { const an = t.a || {}; let di = 0, dc = 0; for (const k in an) { const A = TCombat.ANIMAL[k]; if (A) { di += an[k] * A.di; dc += an[k] * A.dc; } } return `${di.toLocaleString('en-US')} / ${dc.toLocaleString('en-US')}`; }
+function bountyOf(t) { const an = t.a || {}; let b = 0; for (const k in an) { const A = TCombat.ANIMAL[k]; if (A) b += an[k] * A.bounty; } return b; }
+let BT_LINES = [];
+function renderBt() {
+  const tribe = btTribe(); $('btTribe').value = tribe; $('btDist').value = P.bt.dist; P.bt.mode = 'raid'; $('btAnimals').checked = P.bt.animalsOnly; $('btFree').checked = P.bt.freeOnly; $('btFeasible').checked = !!P.bt.feasible;
+  const ch = cpHero(); if (ch && !(P.bt.hero.str > 0)) P.bt.hero.str = ch.fighting;
+  $('btHero').checked = !!P.bt.hero.on; $('btHeroStr').value = P.bt.hero.str || 0; $('btHeroBonus').value = P.bt.hero.bonus || 0; $('btHeroMount').checked = !!P.bt.hero.mounted;
+  const list = TCombat.UNITS[tribe];
+  $('btUnits').innerHTML = list.map(u => `<div class="uinp"><b>${u.name}</b><label class="f">נפחייה<input type="number" min="0" max="20" data-up="${u.id}" value="${P.bt.ups[u.id] || 0}"></label><label class="f">יש לי<input type="number" min="0" data-mine="${u.id}" value="${P.bt.mine[u.id] || ''}"></label></div>`).join('');
+  $('btUnits').querySelectorAll('[data-up]').forEach(i => i.addEventListener('change', () => { P.bt.ups[i.dataset.up] = Math.max(0, Math.min(20, +i.value || 0)); saveP(); renderBt(); }));
+  $('btUnits').querySelectorAll('[data-mine]').forEach(i => i.addEventListener('change', () => { P.bt.mine[i.dataset.mine] = Math.max(0, +i.value || 0); saveP(); renderBt(); }));
+  const ctx = btCtx(); const presets = TCombat.presets(tribe); const rows = btRows();
+  const hasMine = Object.values(P.bt.mine).some(v => v > 0);
+  $('btHead').innerHTML = `<tr><th>#</th><th>מיקום</th><th class="n">מרחק</th><th>חיות</th><th>הגנה רגלים/פרשים</th><th class="n">שלל</th>${presets.map(p => `<th>${esc(p.name)}${ctx.hero ? ' <span class="note">+גיבור</span>' : ''}</th>`).join('')}${hasMine ? `<th>הכוח שלי${ctx.hero ? ' <span class="note">+גיבור</span>' : ''}</th>` : ''}<th></th></tr>`;
+  BT_LINES = [];
+  const shown = []; for (const t of rows) { const cells = presets.map(p => btCell(t, p, ctx)); if (P.bt.feasible && !cells.some(c => c.ok)) continue; shown.push([t, cells]); }
+  $('btRows').innerHTML = shown.map(([t, cells], i) => {
+    const mine = hasMine ? mineCell(t, ctx) : null;
+    BT_LINES.push(`${i + 1}. ${coord(t.x, t.y)} מרחק ${t.d.toFixed(1)} — ${animalsText(t)} — ` + presets.map((p, j) => `${p.name}: ${cells[j].text}`).join(' · ') + (mine ? ` — הכוח שלי: ${mine.text}` : ''));
+    return `<tr><td>${i + 1}</td><td><span dir="ltr">${coord(t.x, t.y)}</span>${t.k === 'oasis_taken' ? `<div class="note">${esc(stateText(t))}</div>` : ''}</td><td class="n">${t.d.toFixed(1)}</td><td class="an">${animalsText(t)}</td><td class="n">${defText(t)}</td><td class="n">${bountyOf(t).toLocaleString('en-US')}×4</td>${cells.map(c => `<td class="bt">${c.html}</td>`).join('')}${mine ? `<td class="bt${mine.bad ? ' bad' : ''}">${mine.html}</td>` : ''}<td><button class="small" data-btcopy="${i}">העתק</button></td></tr>`;
+  }).join('');
+  $('btEmpty').textContent = shown.length ? '' : (Object.keys(M.tiles).length ? (rows.length ? 'אין נווה בטווח שאפשר לנקות בלי אבדות בהרכב כלשהו.' : 'אין נאות בטווח הזה (או שאין בהן חיות).') : 'אין עדיין מפה – טען קובץ HAR.');
+  $('btRows').querySelectorAll('[data-btcopy]').forEach(b => b.addEventListener('click', () => copyText(BT_LINES[+b.dataset.btcopy], 'btMsg')));
+}
+$('btTribe').addEventListener('change', () => { P.bt.tribe = $('btTribe').value; saveP(); renderBt(); });
+$('btDist').addEventListener('change', () => { P.bt.dist = Math.max(1, +$('btDist').value || 15); saveP(); renderBt(); });
+$('btAnimals').addEventListener('change', () => { P.bt.animalsOnly = $('btAnimals').checked; saveP(); renderBt(); });
+$('btFree').addEventListener('change', () => { P.bt.freeOnly = $('btFree').checked; saveP(); renderBt(); });
+$('btFeasible').addEventListener('change', () => { P.bt.feasible = $('btFeasible').checked; saveP(); renderBt(); });
+$('btHero').addEventListener('change', () => { P.bt.hero.on = $('btHero').checked; saveP(); renderBt(); });
+$('btHeroStr').addEventListener('change', () => { P.bt.hero.str = Math.max(0, +$('btHeroStr').value || 0); saveP(); renderBt(); });
+$('btHeroBonus').addEventListener('change', () => { P.bt.hero.bonus = Math.max(0, +$('btHeroBonus').value || 0); saveP(); renderBt(); });
+$('btHeroMount').addEventListener('change', () => { P.bt.hero.mounted = $('btHeroMount').checked; saveP(); renderBt(); });
+$('btCopy').addEventListener('click', () => { const vref = P.ref === 'manual' ? null : villages().find(v => v.id === P.ref); const refName = vref ? `${vref.name} ${coord(P.x, P.y)}` : coord(P.x, P.y); copyText([`נאות עד מרחק ${P.bt.dist} מ-${refName} – מינימום בלי אבדות בבזיזה (${TCombat.TRIBE_HE[btTribe()]}):`].concat(BT_LINES).join('\n'), 'btMsg'); });
 loadMap(); render();
 </script>
 </body>

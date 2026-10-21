@@ -140,7 +140,7 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
   <div class="jump"><b>קפוץ למבנה</b><select id="jumpSel" aria-label="קפוץ למבנה"></select><button id="toTop" type="button">↑ למעלה</button></div>
   <div id="tables"></div>
 
-  <p class="note" style="margin-top:24px">גרסה 2026-10-15</p>
+  <p class="note" style="margin-top:24px">גרסה 2026-10-21</p>
 </div>
 
 <script src="config.js"></script>
@@ -854,6 +854,7 @@ function applyResults(rs) {   // shared by the paste and the HAR import
   let msg = []; let cpInfo = null;
   for (const r of rs) {
     if (r.type === 'cp' && r.villages && r.villages.length) { cpInfo = r; continue; }
+    if (r.type === 'hero_attr' && r.fighting > 0) { S.account = S.account || {}; S.account.hero = { fighting: r.fighting, level: r.level, at: Date.now() }; msg.push(`גיבור: כוח ${r.fighting}`); continue; }
     if (r.type !== 'dorf1' && r.type !== 'dorf2') continue;
     // tabs for every village in the sidebar; the levels go to the village that was active in the game
     // a manual tab (no id yet) becomes the pasted village instead of a duplicate tab
@@ -893,6 +894,7 @@ function mergeTiles(tiles, symbols) {
   if (symbols) M.adventures = symbols.filter(s => s.type === 'adventure').map(s => ({ x: s.x, y: s.y, d: s.params && s.params.difficulty, s: s.seen }));
   M.at = Date.now();
   try { localStorage.setItem(MAPKEY, JSON.stringify(M)); } catch (e) { return 'המפה גדולה מדי לאחסון המקומי'; }
+  if (window.TSync) TSync.mapChanged(M);   // נאות וכפרים סביבי עוברים גם לטלפון
   return null;
 }
 $('harFile').addEventListener('change', async ev => {

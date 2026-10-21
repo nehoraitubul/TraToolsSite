@@ -1,8 +1,10 @@
-// TraToolsSite – סנכרון בין מכשירים. שומר את ה-localStorage של שלושת הדפים בגיליון Google (Apps Script, אותו URL של המעקב).
+// TraToolsSite – סנכרון בין מכשירים. שומר את ה-localStorage של הדפים בגיליון Google (Apps Script, אותו URL של המעקב).
+// המפה: רק נאות וכפרים ברדיוס 40 מהכפרים שלי מסתנכרנים (tt-map-sync-v1) ומתמזגים למפה המלאה במכשיר השני.
 // הסיסמה לא יוצאת מהדפדפן: המפתח בשרת הוא SHA-256 של (שם משתמש + סיסמה).
 (function () {
   const URL = (window.TRACK_URL || '').trim();
-  const KEYS = ['tt-cp-v2', 'tt-sim-state-v1', 'cropOrder.v2', 'tt-transfers-v1', 'tt-oases-v1'];
+  const KEYS = ['tt-cp-v2', 'tt-sim-state-v1', 'cropOrder.v2', 'tt-transfers-v1', 'tt-oases-v1', 'tt-map-sync-v1'];
+  const MAPKEY = 'tt-map-v1', MAPSYNC = 'tt-map-sync-v1', MAP_RADIUS = 40;   // המפה המלאה לא מסתנכרנת (גדולה); רק נאות וכפרים ברדיוס מהכפרים שלי
   const META = 'tt-sync-meta';
   let meta = { user: '', key: '', ts: {}, sig: {}, pending: [], last: 0 };
   try { const m = JSON.parse(localStorage.getItem(META) || 'null'); if (m && m.key) meta = Object.assign(meta, m); } catch (e) {}
@@ -41,13 +43,13 @@
     for (const k of KEYS) {
       const it = items && items[k]; if (!it || !it.data) continue;
       const lts = meta.ts[k] || 0;
-      if (adopt || it.ts > lts) { if (localStorage.getItem(k) !== it.data) n++; localStorage.setItem(k, it.data); meta.ts[k] = it.ts; meta.sig[k] = sig(it.data); meta.pending = meta.pending.filter(x => x !== k); }
+      if (adopt || it.ts > lts) { if (localStorage.getItem(k) !== it.data) n++; localStorage.setItem(k, it.data); meta.ts[k] = it.ts; meta.sig[k] = sig(it.data); meta.pending = meta.pending.filter(x => x !== k); if (k === MAPSYNC) mergeMapIn(it.data); }
     }
     return n;
   }
   async function pull(adopt) {
-    const res = await call({ op: 'get', key: meta.key });
-    serverHas.clear(); for (const k in (res.items || {})) if (res.items[k] && res.items[k].data) serverHas.add(k);
+    const res = await call({ op: 'get', key: meta.key, have: adopt ? {} : meta.ts });   // השרת מחזיר תוכן רק למה שחדש אצלו (שרת ישן מחזיר הכל – עובד גם)
+    serverHas.clear(); for (const k in (res.items || {})) if (res.items[k] && (res.items[k].data || res.items[k].ts)) serverHas.add(k);
     const n = applyServer(res.items, adopt);
     // מה שיש רק אצלנו (או חדש יותר אצלנו) – לדחוף
     for (const k of KEYS) {
@@ -73,6 +75,26 @@
   }
   function schedule() { clearTimeout(timer); timer = setTimeout(push, 1500); }
   function boot() { booted = true; for (const k of early) if (!serverHas.has(k)) touch(k); early.clear(); }
+
+
+  // ---- מפה: תת-קבוצה לסנכרון (נאות + כפרים ברדיוס MAP_RADIUS מהכפרים שלי) ומיזוג חזרה למפה המלאה
+  function myVillages() { try { const c = JSON.parse(localStorage.getItem('tt-cp-v2') || 'null'); return c && c.villages ? Object.values(c.villages).filter(v => v && v.x != null && v.y != null) : []; } catch (e) { return []; } }
+  function mapChanged(M) {
+    try {
+      if (!M || !M.tiles) M = JSON.parse(localStorage.getItem(MAPKEY) || 'null'); if (!M || !M.tiles) return;
+      const vs = myVillages(); const near = t => !vs.length || vs.some(v => { let dx = Math.abs(t.x - v.x), dy = Math.abs(t.y - v.y); dx = Math.min(dx, 401 - dx); dy = Math.min(dy, 401 - dy); return dx <= MAP_RADIUS && dy <= MAP_RADIUS; });
+      const tiles = {}; for (const k in M.tiles) { const t = M.tiles[k]; if (t && t.k && (t.k.startsWith('oasis') || t.k === 'village') && near(t)) tiles[k] = t; }
+      localStorage.setItem(MAPSYNC, JSON.stringify({ tiles, at: M.at || Date.now() })); touch(MAPSYNC);
+    } catch (e) {}
+  }
+  function mergeMapIn(data) {
+    try {
+      const sub = JSON.parse(data); if (!sub || !sub.tiles) return;
+      let M = { tiles: {}, adventures: [], at: 0 }; try { M = Object.assign(M, JSON.parse(localStorage.getItem(MAPKEY) || 'null') || {}); } catch (e) {}
+      for (const k in sub.tiles) { const t = sub.tiles[k], old = M.tiles[k]; if (!old || !(old.s > t.s)) M.tiles[k] = t; }
+      M.at = Math.max(M.at || 0, sub.at || 0); localStorage.setItem(MAPKEY, JSON.stringify(M));
+    } catch (e) {}
+  }
 
   // ---- API לדפים
   function touch(key) {
@@ -135,6 +157,6 @@
     if (!meta.key || !meta.pending.length || !URL) return;
     try { navigator.sendBeacon(URL, new Blob([JSON.stringify({ op: 'put', key: meta.key, items: localItems(meta.pending) })], { type: 'text/plain;charset=utf-8' })); } catch (e) {}
   });
-  window.TSync = { touch, login, logout, pull: () => pull(false), push, keys: KEYS, get user() { return meta.user; } };
+  window.TSync = { touch, login, logout, pull: () => pull(false), push, keys: KEYS, mapChanged, get user() { return meta.user; } };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
