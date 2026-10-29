@@ -352,7 +352,7 @@ const extFmt = t => t ? new Date(t).toLocaleString('he-IL', { hour: '2-digit', m
 
 // ---- סרגל האתר: 5 טאבים שווים + שורת כלים (סנכרון, ייבוא קובץ, תוסף). זהה בכל הדפים.
 (function () {
-  const PAGES = [['index.html', 'סדר קרופר'], ['cp.html', 'תוכנית בנייה'], ['oases.html', 'נאות'], ['transfers.html', 'משלוחים'], ['simulator.html', 'מה לבנות']];
+  const PAGES = [['index.html', 'הקרופר'], ['cp.html', 'הכפרים'], ['oases.html', 'נאות'], ['transfers.html', 'משלוחים'], ['simulator.html', 'תחילת משחק']];
   const PENDING = 'tt-import-pending';
   const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   const css = `
@@ -364,6 +364,8 @@ const extFmt = t => t ? new Date(t).toLocaleString('he-IL', { hour: '2-digit', m
 .sitenav .tabs a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .sitenav .bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;font-size:.85rem;min-height:30px}
 .sitenav .bar{margin-top:6px}
+.sitenav .bar .brand{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:.95rem;color:var(--accent);letter-spacing:.2px}
+.sitenav .bar .brand .logo{display:block}
 .sitenav .bar .tbtn{font:inherit;font-size:.85rem;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:inherit;cursor:pointer;white-space:nowrap}
 .sitenav .bar .tbtn.ok{border-color:#2b7a3b;color:#2b7a3b}
 .sitenav .bar .tmsg{font-size:.8rem;color:var(--muted);flex-basis:100%}
@@ -375,11 +377,13 @@ const extFmt = t => t ? new Date(t).toLocaleString('he-IL', { hour: '2-digit', m
 .subtabs button[aria-selected="true"]{background:var(--accent-soft,#e8eef7);border-color:var(--accent);color:var(--accent);font-weight:700}
 section[data-sub][hidden]{display:none}
 @media(max-width:480px){.subtabs button{font-size:.82rem;padding:5px 8px}}
-@media(max-width:480px){.sitenav .tabs{gap:4px}.sitenav .tabs a{font-size:.78rem;min-height:38px;padding:4px 2px;border-radius:7px}.sitenav .bar .tbtn{padding:4px 8px;font-size:.8rem}}`;
+@media(max-width:480px){.sitenav .tabs{gap:4px}.sitenav .tabs a{font-size:.78rem;min-height:38px;padding:4px 2px;border-radius:7px}.sitenav .bar .brand{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:.95rem;color:var(--accent);letter-spacing:.2px}
+.sitenav .bar .brand .logo{display:block}
+.sitenav .bar .tbtn{padding:4px 8px;font-size:.8rem}}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   const nav = document.querySelector('nav.sitenav'); if (!nav) return;
   nav.innerHTML = `<div class="tabs">${PAGES.map(([h, n]) => `<a href="${h}"${h === here ? ' aria-current="page"' : ''}>${n}</a>`).join('')}</div>
-<div class="bar"><button type="button" class="tbtn" id="ttImportBtn" title="קובץ HAR (DevTools → Export HAR) או הקובץ של התוסף">📂 ייבוא</button><input type="file" id="ttImportFile" accept=".har,.json,application/json" style="display:none"><button type="button" class="tbtn hidden" id="extRefresh" title="התוסף TraTools Listener">🧩 תוסף</button><span id="syncbar"></span><span class="tmsg" id="ttMsg"></span></div>`;
+<div class="bar"><span class="brand" title="TraTools – כלים לטרוויאן"><svg class="logo" viewBox="0 0 64 64" width="26" height="26" aria-hidden="true"><defs><linearGradient id="ttg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbe4a0"/><stop offset=".5" stop-color="#d9a441"/><stop offset="1" stop-color="#8a5a12"/></linearGradient></defs><path d="M32 4 C 40 2, 46 8, 52 8 C 58 14, 62 22, 60 30 C 62 38, 58 46, 54 52 C 46 60, 36 58, 28 60 C 18 58, 8 54, 6 44 C 2 36, 6 26, 8 20 C 12 10, 22 6, 32 4 Z" fill="#2f5d9a"/><circle cx="32" cy="32" r="21" fill="none" stroke="#bcd3f2" stroke-width="1.5" opacity=".7"/><text x="32" y="43" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="30" fill="url(#ttg)">T</text></svg>TraTools</span><button type="button" class="tbtn" id="ttImportBtn" title="קובץ HAR (DevTools → Export HAR) או הקובץ של התוסף">📂 ייבוא</button><input type="file" id="ttImportFile" accept=".har,.json,application/json" style="display:none"><button type="button" class="tbtn hidden" id="extRefresh" title="התוסף TraTools Listener">🧩 תוסף</button><span id="syncbar"></span><span class="tmsg" id="ttMsg"></span></div>`;
   const $ = id => document.getElementById(id);
   let msgTimer = null;
   function msg(html, keep) { $('ttMsg').innerHTML = html || ''; clearTimeout(msgTimer); if (html && !keep) msgTimer = setTimeout(() => { $('ttMsg').innerHTML = ''; }, 12000); }

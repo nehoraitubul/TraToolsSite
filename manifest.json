@@ -1,13 +1,13 @@
 {
- "name": "סדר בניית קרופר 15",
- "short_name": "קרופר 15",
+ "name": "TraTools – כלים לטרוויאן",
+ "short_name": "TraTools",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
  "dir": "rtl",
  "lang": "he",
  "background_color": "#f7f7f8",
- "theme_color": "#3d5a80",
+ "theme_color": "#2f5d9a",
  "icons": [
   {
    "src": "icon-180.png",
@@ -17,7 +17,8 @@
   {
    "src": "icon-512.png",
    "sizes": "512x512",
-   "type": "image/png"
+   "type": "image/png",
+   "purpose": "any"
   }
  ]
 }

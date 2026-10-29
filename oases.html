@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>נאות וחיות</title>
+<title>נאות · TraTools</title>
 <link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
 <style>
 :root {
   --bg: #f7f7f8; --surface: #ffffff; --fg: #1f2329; --muted: #5f6570; --line: #dfe2e7; --accent: #2f5d9a; --accent-soft: #e8eef7; --cp: #9a5b00; --cp-soft: #fbefd9; --warn: #a3332a; --warn-soft: #fbe5e2; --ok: #2b7a3b; --ok-soft: #e6f4e8;
@@ -72,10 +74,10 @@ table.inner { font-size: .85rem; } table.inner th { background: transparent; bor
 <div class="wrap">
   <nav class="sitenav"></nav>
   <h1>נאות וחיות</h1>
-  <p class="sub">כל הנאות שנקלטו מהמפה (קובץ HAR או התוסף – כפתור הייבוא למעלה): בונוס, חיות לפי סוג, מרחק מכל נקודה שתבחר. ברירת המחדל: נאות עם פילים, לפי מרחק.</p>
+  <p class="sub">כל הנאות שנקלטו מהמפה (קובץ HAR או התוסף – כפתור הייבוא למעלה): בונוס, חיות לפי סוג, מרחק מכל נקודה שתבחר. ברירת המחדל בחיפוש: נאות עם פילים, לפי מרחק.</p>
   <div class="chips" id="stats"></div>
 
-  <section data-sub="elephants" data-subname="📍 פילים">
+  <section data-sub="elephants" data-subname="🔍 חיפוש">
   <div class="card">
     <div class="row2">
       <label class="f">מרחק מ-<select id="refSel"></select></label>
@@ -95,8 +97,8 @@ table.inner { font-size: .85rem; } table.inner th { background: transparent; bor
   <details class="card"><summary><b>הטקסט להעתקה</b> <span class="note">(אם ההעתקה האוטומטית לא עובדת – סמן והעתק מכאן)</span></summary><textarea id="copyBox" readonly dir="auto"></textarea></details>
   </section>
 
-  <section data-sub="cages" data-subname="🧺 כלובים">
-  <p class="sub">הכלובים מתמלאים בסבבים: בכל סבב חיה אחת מכל סוג, מהחלשה לחזקה (🐀 → 🐘), ואז שוב. לכל נווה: כמה כלובים שווה לקחת (עד שהסבב הבא מוריד את ההגנה לכלוב) ומה יוצא. המרחק מהכפר שנבחר ב"פילים".</p>
+  <section data-sub="cages" data-subname="🪤 לכידה">
+  <p class="sub">הכלובים מתמלאים בסבבים: בכל סבב חיה אחת מכל סוג, מהחלשה לחזקה (🐀 → 🐘), ואז שוב. לכל נווה: כמה כלובים שווה לקחת (עד שהסבב הבא מוריד את ההגנה לכלוב) ומה יוצא. המרחק מהכפר שנבחר ב"חיפוש".</p>
   <div class="card">
     <div class="row2">
       <label class="f">עד מרחק<input type="number" id="cgDist" min="1" value="30"></label>
@@ -124,7 +126,7 @@ table.inner { font-size: .85rem; } table.inner th { background: transparent; bor
   </div>
   </section>
 
-  <section data-sub="battle" data-subname="⚔ כמה לשלוח">
+  <section data-sub="battle" data-subname="⚔ ציד">
   <p class="sub">בוחרים הרכב, ולכל נווה בטווח: <b>הקבוצה הקטנה ביותר שחוזרת בלי אבדות</b> מבזיזה, כמה חיות היא הורגת, וכמה זמן. לחיצה על ▾ פותחת את כל ההרכבים. החיות נכונות לרגע הייבוא – בבוקר הן יכולות להיות אחרות.</p>
   <div class="card">
     <div class="row2">

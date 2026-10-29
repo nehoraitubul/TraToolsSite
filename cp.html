@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>תוכנית בנייה</title>
+<title>הכפרים · TraTools</title>
 <link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
 <style>
 :root {
   --bg: #f7f7f8; --surface: #ffffff; --fg: #1f2329; --muted: #5f6570; --line: #dfe2e7; --accent: #2f5d9a; --accent-soft: #e8eef7; --cp: #9a5b00; --cp-soft: #fbefd9; --warn: #a3332a; --warn-soft: #fbe5e2; --hero: #5b3f9e; --hero-soft: #efe9fb;
@@ -87,12 +89,12 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
 <body>
 <div class="wrap">
   <nav class="sitenav"></nav>
-  <h1>תוכנית בנייה לכל כפר</h1>
+  <h1>הכפרים</h1>
   <p class="sub">כל מבנה, רמה 1 עד 20: כמה עולה, כמה נק"ת ליום מוסיף, וכמה משאבים משלמים על כל נק"ת. ייבא קובץ (כפתור הייבוא למעלה) או הזן את הרמות שלך, וקבל את השדרוגים הכי משתלמים ממצבך הנוכחי. נתוני Travian Legends 4.6, x1.</p>
 
   <div class="tabs" id="tabs"></div>
 
-  <section data-sub="levels" data-subname="🏗 הרמות שלי">
+  <section data-sub="levels" data-subname="🏘 הכפר">
   <div class="card">
     <div class="vbar">
       <label class="f">שם הכפר<input type="text" id="vName" maxlength="30" dir="auto"></label>
@@ -118,7 +120,7 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
 
   </section>
 
-  <section data-sub="rank" data-subname="💰 מה הכי משתלם">
+  <section data-sub="rank" data-subname="💰 הכי משתלם">
   <div class="card">
     <h2>מה הכי משתלם עכשיו <span class="note" id="rankNote"></span></h2>
     <p class="note" style="margin-top:0">שלושת הצעדים הבאים בכל מבנה, כל צעד הוא רמה אחת או המינימום עד שנוספת נק"ת. צעד לא מדורג מעל הצעד שהוא תלוי בו, וכשההמשך משפר את המחיר (נקיק 7→9 ואז 9→10) זה מצוין בסוגריים. כשרמה לא מוסיפה נק"ת (נקיק 1→2, למשל) מוצגת קפיצה עד הרמה שכן מוסיפה. "בניתי" מעלה את הרמה ומדרג מחדש.</p>
@@ -126,14 +128,14 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
   </div>
 
   </section>
-  <section data-sub="plan" data-subname="📋 התוכנית">
+  <section data-sub="plan" data-subname="🧭 המסלול">
   <div class="card" id="planCard">
     <div id="planBody"></div>
   </div>
   </section>
 
 
-  <section data-sub="tables" data-subname="📊 טבלאות">
+  <section data-sub="tables" data-subname="📊 כל המבנים">
   <div class="nav" id="nav"></div>
   <div class="jump"><b>קפוץ למבנה</b><select id="jumpSel" aria-label="קפוץ למבנה"></select><button id="toTop" type="button">↑ למעלה</button></div>
   <div id="tables"></div>
