@@ -55,6 +55,7 @@ td.bt { font-size: .85rem; line-height: 1.3; } td.bt b { font-size: .95rem; } td
   <p class="sub">כל הנאות שנקלטו מהמפה (קובץ HAR או התוסף – כפתור הייבוא למעלה): בונוס, חיות לפי סוג, מרחק מכל נקודה שתבחר. ברירת המחדל: נאות עם פילים, לפי מרחק.</p>
   <div class="chips" id="stats"></div>
 
+  <section data-sub="elephants" data-subname="פילים">
   <div class="card">
     <div class="row2">
       <label class="f">מרחק מ-<select id="refSel"></select></label>
@@ -78,7 +79,8 @@ td.bt { font-size: .85rem; line-height: 1.3; } td.bt b { font-size: .95rem; } td
 
   <details class="card"><summary><b>הטקסט להעתקה</b> <span class="note">(אם ההעתקה האוטומטית לא עובדת – סמן והעתק מכאן)</span></summary><textarea id="copyBox" readonly dir="auto"></textarea></details>
 
-  <h2 style="margin-top:22px">כלובים – איפה הכי שווה</h2>
+  </section>
+  <section data-sub="cages" data-subname="כלובים">
   <p class="sub">הכלובים מתמלאים בסבבים: בכל סבב חיה אחת מכל סוג, מהחלשה לחזקה (חולדה → פיל), ואז שוב מההתחלה. לכל נווה מחושב כמה כלובים שווה לקחת (עד שסבב נוסף מוריד את ההגנה לכלוב) ומה יוצא. דירוג לפי הגנה לכלוב או לשעת גיבור (הלוך-חזור). החיות שנתפסות מגינות על הכפר בלי לאכול יבול. המרחק מהכפר שנבחר למעלה.</p>
   <div class="card">
     <div class="row2">
@@ -97,14 +99,16 @@ td.bt { font-size: .85rem; line-height: 1.3; } td.bt b { font-size: .95rem; } td
     <p class="note">"כלובים" = הכמות המומלצת לנווה הזה: הסבבים נעצרים כשהסבב הבא מוריד את ההגנה לכלוב ביותר מ-3%. "לכלוב"/"לשעה" = ממוצע הגנה (רגלים+פרשים)/2 לכלוב / לשעת הליכה של הגיבור הלוך-חזור. סדר התפיסה (חולדה→פיל) לפי סדר החיות במשחק – אם תראה בדוח סדר אחר, תגיד לי.</p>
   </div>
 
-  <h2 style="margin-top:22px">החיות שלי</h2>
-  <p class="sub">החיות שנתפסו ויושבות בכפרים (מהמסך הראשי של כל כפר – קובץ HAR או התוסף). הן מגינות בלי לאכול יבול; "חוסך לשעה" = כמה יבול היה עולה להחזיק הגנה שווה בחיילי הגנה של השבט (ממוצע שתי יחידות ההגנה, רגלים+פרשים/2).</p>
+  </section>
+  <section data-sub="mine" data-subname="החיות שלי">
+  <p class="sub">החיות שנתפסו ויושבות בכפרים (מהמסך הראשי של כל כפר – קובץ HAR או התוסף). הן מגינות בלי לאכול יבול; "שווה ל-" = כמה חיילים מיחידת ההגנה הטובה של השבט (הגנה ממוצעת רגלים/פרשים) נותנים אותה הגנה, ו"חוסך לשעה" = היבול שהחיילים האלה היו אוכלים.</p>
   <div class="card">
     <div class="tbl"><table><thead><tr><th>כפר</th><th>חיות</th><th class="n">הגנה רגלים/פרשים</th><th class="n">שווה ל-</th><th class="n">חוסך לשעה</th><th class="n">עודכן</th></tr></thead><tbody id="myRows"></tbody></table></div>
     <p class="note" id="myEmpty"></p>
   </div>
 
-  <h2 style="margin-top:22px">כמה לשלוח לכל נווה</h2>
+  </section>
+  <section data-sub="battle" data-subname="כמה לשלוח">
   <p class="sub">כל הנאות סביב הכפר הנבחר, ולכל אחת הקבוצה הקטנה ביותר שחוזרת <b>בלי אבדות</b> מבזיזה לפי הרכב, כמה חיות היא הורגת, וכמה צריך כדי שכולן ימותו. וגם מה קורה אם שולחים את הכוח שלך. הנוסחה: סימולטור Kirilloid (בזיזה: עיגול אבדות לכל סוג יחידה, K=1.5 בקרבות קטנים, הגנת בסיס 10, בלי מורל). <b>החיות הן נכון לרגע ה-HAR</b> – בבוקר הן יכולות להיות אחרות.</p>
   <div class="card">
     <div class="row2">
@@ -129,6 +133,7 @@ td.bt { font-size: .85rem; line-height: 1.3; } td.bt b { font-size: .95rem; } td
     <p class="note">בכל תא: הקבוצה הקטנה ביותר <b>בלי אבדות</b> (סדר המספרים כסדר היחידות בכותרת) ו"הורג k/N" = כמה מהחיות ימותו בבזיזה הזאת. "הכל מת" = הקבוצה שהורגת את כולן בלי אבדות. "≤1" = מוכן לאבד עד יחידה אחת מכל סוג. "—" = צריך יותר מ-1,000 מכל סוג. ⏱ זמן הליכה לכיוון אחד לפי היחידה האיטית. שלל = לכל משאב (×4 בסך הכל), נכנס למלאי הגיבור גם בלי שישתתף.</p>
   </div>
 
+  </section>
   <p class="note">מקור: תגובות map/position של המשחק שנשמרו ב-HAR. חיות: u31 חולדה … u40 פיל. המפה 401×401 וחוזרת על עצמה (המרחק מחושב בהתאם). גרסה 2026-10-29</p>
 </div>
 
@@ -357,10 +362,10 @@ window.TT_EXT_APPLY = (d, force) => {
 // ---------- החיות שלי: מהכוחות בכפר (u31..u40 במסך הראשי)
 const U_ANIMAL = { u31: 'rat', u32: 'spider', u33: 'snake', u34: 'bat', u35: 'boar', u36: 'wolf', u37: 'bear', u38: 'crocodile', u39: 'tiger', u40: 'elephant' };
 const DEF_UNITS = { romans: ['praetorian', 'legionnaire'], teutons: ['spearman', 'paladin'], gauls: ['phalanx', 'druidrider'], egyptians: ['ash_warden', 'anhur_guard'], huns: ['mercenary', 'marksman'] };
-function defPerCrop(tribe) {   // ממוצע הגנה לנקודת יבול/שעה של שתי יחידות ההגנה של השבט
+function bestDefUnit(tribe) {   // יחידת ההגנה עם הכי הרבה הגנה לכל יבול/שעה (ממוצע רגלים+פרשים)
   const list = TCombat.UNITS[tribe] || TCombat.UNITS.romans; const ids = DEF_UNITS[tribe] || DEF_UNITS.romans;
-  const us = ids.map(id => list.find(u => u.id === id)).filter(Boolean); if (!us.length) return 45;
-  return us.reduce((s, u) => s + (u.di + u.dc) / 2 / u.u, 0) / us.length;
+  let best = null; for (const id of ids) { const u = list.find(x => x.id === id); if (!u) continue; const v = (u.di + u.dc) / 2 / u.u; if (!best || v > best.v) best = { u, v }; }
+  return best;
 }
 function renderMine() {
   let vs = []; try { const c = JSON.parse(localStorage.getItem(CPKEY) || 'null'); vs = c && c.order ? c.order.map(id => c.villages[id]).filter(Boolean) : []; } catch (e) {}
@@ -369,8 +374,8 @@ function renderMine() {
     const tr = v.troops || {}; const an = {}; let di = 0, dc = 0, n = 0;
     for (const u in tr) { const k = U_ANIMAL[u]; if (!k || !(tr[u] > 0)) continue; an[k] = tr[u]; n += tr[u]; di += tr[u] * TCombat.ANIMAL[k].di; dc += tr[u] * TCombat.ANIMAL[k].dc; }
     if (!n) continue;
-    const tribe = TCombat.UNITS[v.tribe] ? v.tribe : 'romans'; const dpc = defPerCrop(tribe); const avg = (di + dc) / 2; const crop = avg / dpc;
-    const best = DEF_UNITS[tribe][0]; const bu = TCombat.UNITS[tribe].find(u => u.id === best); const eq = Math.round(avg / ((bu.di + bu.dc) / 2));
+    const tribe = TCombat.UNITS[v.tribe] ? v.tribe : 'romans'; const bd = bestDefUnit(tribe); const bu = bd.u; const avg = (di + dc) / 2;
+    const eq = Math.round(avg / ((bu.di + bu.dc) / 2)); const crop = eq * bu.u;   // אותה יחידה לשני המספרים: N יחידות × הכלכלה שלהן
     tdi += di; tdc += dc; tcrop += crop; tn += n;
     rows.push(`<tr><td>${esc(v.name)}</td><td class="an">${animalsText({ a: an })}</td><td class="n">${di.toLocaleString('en-US')} / ${dc.toLocaleString('en-US')}</td><td class="n">${eq.toLocaleString('en-US')} ${bu.name}</td><td class="n"><b>${Math.round(crop).toLocaleString('en-US')}</b> יבול/שעה</td><td class="n">${v.at ? new Date(v.at * 1000).toLocaleString('he-IL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—'}</td></tr>`);
   }

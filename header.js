@@ -370,6 +370,11 @@ const extFmt = t => t ? new Date(t).toLocaleString('he-IL', { hour: '2-digit', m
 .sitenav .bar .tmsg:empty{display:none}
 .sitenav .bar .tmsg a{color:var(--accent)}
 .hidden{display:none!important}
+.subtabs{position:sticky;z-index:9;display:flex;flex-wrap:wrap;gap:6px;padding:6px 0 8px;margin:0 0 10px;background:var(--bg)}
+.subtabs button{font:inherit;font-size:.88rem;flex:1 1 auto;text-align:center;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;white-space:nowrap}
+.subtabs button[aria-selected="true"]{background:var(--accent-soft,#e8eef7);border-color:var(--accent);color:var(--accent);font-weight:700}
+section[data-sub][hidden]{display:none}
+@media(max-width:480px){.subtabs button{font-size:.82rem;padding:5px 8px}}
 @media(max-width:480px){.sitenav .tabs{gap:4px}.sitenav .tabs a{font-size:.78rem;min-height:38px;padding:4px 2px;border-radius:7px}.sitenav .bar .tbtn{padding:4px 8px;font-size:.8rem}}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
   const nav = document.querySelector('nav.sitenav'); if (!nav) return;
@@ -413,6 +418,21 @@ const extFmt = t => t ? new Date(t).toLocaleString('he-IL', { hour: '2-digit', m
   }
   $('extRefresh').addEventListener('click', () => extPull(true));
   window.ttExtPull = extPull;
-  window.addEventListener('DOMContentLoaded', () => { applyPending(); extPull(false); });
-  if (document.readyState !== 'loading') { applyPending(); extPull(false); }
+  // ---- תת-טאבים: סקשן אחד בכל פעם (section[data-sub]); הבחירה נשמרת לכל דף
+  function subtabs() {
+    const secs = [...document.querySelectorAll('section[data-sub]')]; if (secs.length < 2) return;
+    const key = 'tt-sub:' + here; let cur = ''; try { cur = localStorage.getItem(key) || ''; } catch (e) {}
+    const fromHash = location.hash && secs.find(s => s.dataset.sub === location.hash.slice(1)) ? location.hash.slice(1) : '';
+    if (fromHash) cur = fromHash; if (!secs.some(s => s.dataset.sub === cur)) cur = secs[0].dataset.sub;
+    const row = document.createElement('div'); row.className = 'subtabs'; row.setAttribute('role', 'tablist');
+    secs[0].parentNode.insertBefore(row, secs[0]);
+    const show = id => { cur = id; try { localStorage.setItem(key, id); } catch (e) {} for (const s of secs) s.hidden = s.dataset.sub !== id; for (const b of row.children) b.setAttribute('aria-selected', b.dataset.sub === id ? 'true' : 'false'); };
+    for (const s of secs) { const b = document.createElement('button'); b.type = 'button'; b.dataset.sub = s.dataset.sub; b.textContent = s.dataset.subname || s.dataset.sub; b.addEventListener('click', () => { show(s.dataset.sub); window.scrollTo({ top: 0 }); }); row.appendChild(b); }
+    show(cur);
+    const place = () => { row.style.top = nav.offsetHeight + 'px'; }; place(); window.addEventListener('resize', place);
+    window.ttShowSub = show;
+  }
+  const init = () => { subtabs(); applyPending(); extPull(false); };
+  window.addEventListener('DOMContentLoaded', init);
+  if (document.readyState !== 'loading') init();
 })();
