@@ -352,7 +352,7 @@ const extFmt = t => t ? new Date(t).toLocaleString('he-IL', { hour: '2-digit', m
 
 // ---- סרגל האתר: 5 טאבים שווים + שורת כלים (סנכרון, ייבוא קובץ, תוסף). זהה בכל הדפים.
 (function () {
-  const PAGES = [['index.html', 'סדר קרופר'], ['simulator.html', 'מה לבנות'], ['cp.html', 'תוכנית בנייה'], ['transfers.html', 'משלוחים'], ['oases.html', 'נאות']];
+  const PAGES = [['index.html', 'סדר קרופר'], ['cp.html', 'תוכנית בנייה'], ['oases.html', 'נאות'], ['transfers.html', 'משלוחים'], ['simulator.html', 'מה לבנות']];
   const PENDING = 'tt-import-pending';
   const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   const css = `

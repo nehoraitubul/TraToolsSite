@@ -45,7 +45,27 @@ td.bt { font-size: .85rem; line-height: 1.3; } td.bt b { font-size: .95rem; } td
 .chip.c { background: var(--cp-soft); color: var(--cp); }
 .chip.w { background: var(--warn-soft); color: var(--warn); }
 .hidden { display: none !important; }
-@media (max-width: 480px) { th, td { padding: 4px 5px; font-size: .82rem; } body { font-size: 14px; } }
+table.nice tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--fg) 3%, transparent); }
+table.nice td { vertical-align: top; padding: 7px 8px; }
+table.nice th.sep, table.nice td.sep { border-inline-start: 2px solid var(--line); }
+td.ans b { font-size: 1.05rem; }
+td.ans .note, td .note { white-space: normal; }
+.xy { font-weight: 700; }
+.ani { display: inline-flex; flex-wrap: wrap; gap: 2px 8px; }
+.ai { white-space: nowrap; } .ai b { font-weight: 600; margin-inline-start: 1px; } .ai.main { color: var(--cp); font-weight: 700; }
+.badge { display: inline-block; font-size: .72rem; padding: 0 6px; border-radius: 999px; background: var(--ok-soft); color: var(--ok); } .badge.gray { background: var(--line); color: var(--muted); }
+.okc { color: var(--ok); } .warnc { color: var(--cp); } .bad { color: var(--warn); } .note.ok { color: var(--ok); }
+tr.inplan td { background: var(--ok-soft) !important; }
+tr.det > td { background: var(--bg) !important; padding: 6px 10px 10px; }
+table.inner { font-size: .85rem; } table.inner th { background: transparent; border-bottom: 1px solid var(--line); }
+.pills { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.pills button { font-size: .85rem; padding: 4px 10px; border-radius: 999px; }
+.pills button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.stat { display: flex; flex-wrap: wrap; gap: 8px 28px; align-items: center; }
+.big { font-size: 1.35rem; font-weight: 700; } .big .note { font-size: .85rem; font-weight: 400; }
+.plan .big { font-size: 1.1rem; } .planlist { margin: 6px 0 0; padding-inline-start: 1.4em; } .planlist li { margin: 3px 0; }
+.empty:empty { display: none; }
+@media (max-width: 480px) { th, td { padding: 4px 5px; font-size: .82rem; } body { font-size: 14px; } .c-def, .c-loot { display: none; } td.ans b { font-size: 1rem; } .big { font-size: 1.15rem; } }
 </style>
 </head>
 <body>
@@ -55,85 +75,82 @@ td.bt { font-size: .85rem; line-height: 1.3; } td.bt b { font-size: .95rem; } td
   <p class="sub">כל הנאות שנקלטו מהמפה (קובץ HAR או התוסף – כפתור הייבוא למעלה): בונוס, חיות לפי סוג, מרחק מכל נקודה שתבחר. ברירת המחדל: נאות עם פילים, לפי מרחק.</p>
   <div class="chips" id="stats"></div>
 
-  <section data-sub="elephants" data-subname="פילים">
+  <section data-sub="elephants" data-subname="📍 פילים">
   <div class="card">
     <div class="row2">
       <label class="f">מרחק מ-<select id="refSel"></select></label>
       <label class="f">x<input type="number" id="refX" min="-200" max="200"></label>
       <label class="f">y<input type="number" id="refY" min="-200" max="200"></label>
-      <label class="f">חיה<select id="animal"><option value="elephant">פיל</option><option value="tiger">נמר</option><option value="crocodile">תנין</option><option value="bear">דוב</option><option value="wolf">זאב</option><option value="boar">חזיר בר</option><option value="bat">עטלף</option><option value="snake">נחש</option><option value="spider">עכביש</option><option value="rat">חולדה</option><option value="any">כל נווה עם חיות</option><option value="none">נאות בלי חיות</option><option value="all">כל הנאות</option></select></label>
+      <label class="f">חיה<select id="animal"><option value="elephant">🐘 פיל</option><option value="tiger">🐅 נמר</option><option value="crocodile">🐊 תנין</option><option value="bear">🐻 דוב</option><option value="wolf">🐺 זאב</option><option value="boar">🐗 חזיר בר</option><option value="bat">🦇 עטלף</option><option value="snake">🐍 נחש</option><option value="spider">🕷️ עכביש</option><option value="rat">🐀 חולדה</option><option value="any">כל נווה עם חיות</option><option value="none">נאות בלי חיות</option><option value="all">כל הנאות</option></select></label>
       <label class="f">לפחות<input type="number" id="minCount" min="1" value="1"></label>
       <label class="f">עד מרחק<input type="number" id="maxDist" min="1" value="60"></label>
-      <label class="c"><input type="checkbox" id="freeOnly" checked> רק נאות פנויות</label>
-    </div>
-    <div class="row2" style="margin-top:8px">
-      <button type="button" class="primary" id="copyAll">העתק את הרשימה</button>
-      <span class="note" id="copyMsg"></span>
+      <label class="c"><input type="checkbox" id="freeOnly" checked> רק פנויות</label>
+      <button type="button" class="small" id="copyAll">📋 העתק רשימה</button><span class="note" id="copyMsg"></span>
     </div>
   </div>
-
   <div class="card">
-    <div class="tbl"><table><thead><tr><th>#</th><th>מיקום</th><th class="n">מרחק</th><th>מצב</th><th>בונוס</th><th class="n" id="thAnimal">פילים</th><th>כל החיות</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
-    <p class="note" id="empty"></p>
+    <div class="tbl"><table class="nice"><thead><tr><th>#</th><th>נווה</th><th class="n" id="thAnimal">🐘</th><th>כל החיות</th><th>בונוס</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+    <p class="note empty" id="empty"></p>
   </div>
-
   <details class="card"><summary><b>הטקסט להעתקה</b> <span class="note">(אם ההעתקה האוטומטית לא עובדת – סמן והעתק מכאן)</span></summary><textarea id="copyBox" readonly dir="auto"></textarea></details>
-
   </section>
-  <section data-sub="cages" data-subname="כלובים">
-  <p class="sub">הכלובים מתמלאים בסבבים: בכל סבב חיה אחת מכל סוג, מהחלשה לחזקה (חולדה → פיל), ואז שוב מההתחלה. לכל נווה מחושב כמה כלובים שווה לקחת (עד שסבב נוסף מוריד את ההגנה לכלוב) ומה יוצא. דירוג לפי הגנה לכלוב או לשעת גיבור (הלוך-חזור). החיות שנתפסות מגינות על הכפר בלי לאכול יבול. המרחק מהכפר שנבחר למעלה.</p>
+
+  <section data-sub="cages" data-subname="🧺 כלובים">
+  <p class="sub">הכלובים מתמלאים בסבבים: בכל סבב חיה אחת מכל סוג, מהחלשה לחזקה (🐀 → 🐘), ואז שוב. לכל נווה: כמה כלובים שווה לקחת (עד שהסבב הבא מוריד את ההגנה לכלוב) ומה יוצא. המרחק מהכפר שנבחר ב"פילים".</p>
   <div class="card">
     <div class="row2">
       <label class="f">עד מרחק<input type="number" id="cgDist" min="1" value="30"></label>
       <label class="f">מהירות הגיבור<input type="number" id="cgSpeed" min="1" value="7"></label>
       <label class="f">יש לי כלובים<input type="number" id="cgCages" min="0" value="10"></label>
-      <label class="f">דירוג<select id="cgSort"><option value="cage">הגנה לכלוב</option><option value="hour">הגנה לשעת גיבור</option><option value="total">הגנה בנסיעה אחת</option></select></label>
+      <div class="pills" id="cgSortPills" role="group" aria-label="מיון"><span class="note">לפי:</span><button type="button" data-sort="cage">לכלוב</button><button type="button" data-sort="hour">לשעת גיבור</button><button type="button" data-sort="total">לנסיעה</button></div>
       <label class="c"><input type="checkbox" id="cgFree" checked> רק פנויות</label>
+      <button type="button" class="small" id="cgCopy">📋 העתק</button><span class="note" id="cgMsg"></span>
     </div>
-    <div class="row2" style="margin-top:8px"><button type="button" class="primary" id="cgCopy">העתק את התוכנית</button><span class="note" id="cgMsg"></span></div>
-    <div class="chips" id="cgPlan"></div>
   </div>
+  <div class="card plan" id="cgPlan"></div>
   <div class="card">
-    <div class="tbl"><table><thead><tr><th>#</th><th>מיקום</th><th class="n">מרחק</th><th class="n">⏱ הלוך-חזור</th><th>חיות בנווה</th><th class="n">כלובים</th><th>מה תקבל</th><th class="n">הגנה רגלים/פרשים</th><th class="n">לכלוב</th><th class="n">לשעה</th><th></th></tr></thead><tbody id="cgRows"></tbody></table></div>
-    <p class="note" id="cgEmpty"></p>
-    <p class="note">"כלובים" = הכמות המומלצת לנווה הזה: הסבבים נעצרים כשהסבב הבא מוריד את ההגנה לכלוב ביותר מ-3%. "לכלוב"/"לשעה" = ממוצע הגנה (רגלים+פרשים)/2 לכלוב / לשעת הליכה של הגיבור הלוך-חזור. סדר התפיסה (חולדה→פיל) לפי סדר החיות במשחק – אם תראה בדוח סדר אחר, תגיד לי.</p>
+    <div class="tbl"><table class="nice"><thead><tr><th>#</th><th>נווה</th><th>חיות בנווה</th><th class="sep">קח</th><th>תקבל</th><th class="n">🛡 הגנה</th><th class="n">לכלוב</th><th class="n">לשעה</th><th></th></tr></thead><tbody id="cgRows"></tbody></table></div>
+    <p class="note empty" id="cgEmpty"></p>
+    <p class="note">🛡 = רגלים / פרשים. "לכלוב" ו"לשעה" = ממוצע ההגנה לכלוב / לשעת הגיבור הלוך-חזור. "קח" נעצר כשסבב נוסף מוריד את ההגנה לכלוב ביותר מ-3%. סדר התפיסה (🐀→🐘) לפי סדר החיות במשחק.</p>
   </div>
-
   </section>
-  <section data-sub="mine" data-subname="החיות שלי">
-  <p class="sub">החיות שנתפסו ויושבות בכפרים (מהמסך הראשי של כל כפר – קובץ HAR או התוסף). הן מגינות בלי לאכול יבול; "שווה ל-" = כמה חיילים מיחידת ההגנה הטובה של השבט (הגנה ממוצעת רגלים/פרשים) נותנים אותה הגנה, ו"חוסך לשעה" = היבול שהחיילים האלה היו אוכלים.</p>
+
+  <section data-sub="mine" data-subname="🛡 החיות שלי">
+  <div class="card stat" id="myStat"></div>
   <div class="card">
-    <div class="tbl"><table><thead><tr><th>כפר</th><th>חיות</th><th class="n">הגנה רגלים/פרשים</th><th class="n">שווה ל-</th><th class="n">חוסך לשעה</th><th class="n">עודכן</th></tr></thead><tbody id="myRows"></tbody></table></div>
-    <p class="note" id="myEmpty"></p>
+    <div class="tbl"><table class="nice"><thead><tr><th>כפר</th><th>חיות</th><th class="n">🛡 הגנה</th><th class="n">שווה ל-</th><th class="n">חוסך</th><th class="n">עודכן</th></tr></thead><tbody id="myRows"></tbody></table></div>
+    <p class="note empty" id="myEmpty"></p>
+    <p class="note">מהמסך הראשי של כל כפר (ייבוא/תוסף). החיות מגינות בלי לאכול יבול. "שווה ל-" = כמה חיילים מיחידת ההגנה הטובה של השבט נותנים אותה הגנה ממוצעת, ו"חוסך" = היבול שהם היו אוכלים.</p>
   </div>
-
   </section>
-  <section data-sub="battle" data-subname="כמה לשלוח">
-  <p class="sub">כל הנאות סביב הכפר הנבחר, ולכל אחת הקבוצה הקטנה ביותר שחוזרת <b>בלי אבדות</b> מבזיזה לפי הרכב, כמה חיות היא הורגת, וכמה צריך כדי שכולן ימותו. וגם מה קורה אם שולחים את הכוח שלך. הנוסחה: סימולטור Kirilloid (בזיזה: עיגול אבדות לכל סוג יחידה, K=1.5 בקרבות קטנים, הגנת בסיס 10, בלי מורל). <b>החיות הן נכון לרגע ה-HAR</b> – בבוקר הן יכולות להיות אחרות.</p>
+
+  <section data-sub="battle" data-subname="⚔ כמה לשלוח">
+  <p class="sub">בוחרים הרכב, ולכל נווה בטווח: <b>הקבוצה הקטנה ביותר שחוזרת בלי אבדות</b> מבזיזה, כמה חיות היא הורגת, וכמה זמן. לחיצה על ▾ פותחת את כל ההרכבים. החיות נכונות לרגע הייבוא – בבוקר הן יכולות להיות אחרות.</p>
   <div class="card">
     <div class="row2">
       <label class="f">שבט<select id="btTribe"><option value="romans">רומאים</option><option value="teutons">טאוטונים</option><option value="gauls">גאלים</option><option value="egyptians">מצרים</option><option value="huns">הונים</option></select></label>
       <label class="f">עד מרחק<input type="number" id="btDist" min="1" value="15"></label>
-      <label class="c"><input type="checkbox" id="btAnimals" checked> רק נאות עם חיות</label>
-      <label class="c"><input type="checkbox" id="btFree" checked> רק פנויות</label>
-      <label class="c"><input type="checkbox" id="btFeasible"> רק מה שאפשר לנקות בלי אבדות</label>
+      <div class="pills" id="btPresets" role="group" aria-label="הרכב"><span class="note">הרכב:</span></div>
     </div>
     <div class="row2" style="margin-top:8px">
+      <label class="c"><input type="checkbox" id="btFeasible"> רק מה שאפשר לנקות בלי אבדות</label>
+      <label class="c"><input type="checkbox" id="btFree" checked> רק פנויות</label>
       <label class="c"><input type="checkbox" id="btHero"> הגיבור משתתף</label>
-      <label class="f">כוח לחימה (מדף הגיבור)<input type="number" id="btHeroStr" min="0" step="1" value="0"></label>
-      <label class="f">בונוס התקפה %<input type="number" id="btHeroBonus" min="0" max="20" step="0.2" value="0"></label>
+      <label class="f">כוח לחימה<input type="number" id="btHeroStr" min="0" step="1" value="0"></label>
+      <label class="f">בונוס %<input type="number" id="btHeroBonus" min="0" max="20" step="0.2" value="0"></label>
       <label class="c"><input type="checkbox" id="btHeroMount"> רכוב</label>
+      <button type="button" class="small" id="btCopy">📋 העתק</button><span class="note" id="btMsg"></span>
     </div>
-    <details style="margin-top:8px"><summary class="note">שדרוגי נפחייה והכוח שלי (לעמודת "הכוח שלי")</summary><div class="row2" id="btUnits" style="margin-top:6px"></div></details>
-    <div class="row2" style="margin-top:8px"><button type="button" class="primary" id="btCopy">העתק את התוכנית</button><span class="note" id="btMsg"></span></div>
+    <details style="margin-top:8px"><summary class="note">נפחייה + הכוח שלי (מוסיף עמודה "אם אשלח הכל")</summary><div class="row2" id="btUnits" style="margin-top:6px"></div></details>
   </div>
   <div class="card">
-    <div class="tbl"><table id="btTable"><thead id="btHead"></thead><tbody id="btRows"></tbody></table></div>
-    <p class="note" id="btEmpty"></p>
-    <p class="note">בכל תא: הקבוצה הקטנה ביותר <b>בלי אבדות</b> (סדר המספרים כסדר היחידות בכותרת) ו"הורג k/N" = כמה מהחיות ימותו בבזיזה הזאת. "הכל מת" = הקבוצה שהורגת את כולן בלי אבדות. "≤1" = מוכן לאבד עד יחידה אחת מכל סוג. "—" = צריך יותר מ-1,000 מכל סוג. ⏱ זמן הליכה לכיוון אחד לפי היחידה האיטית. שלל = לכל משאב (×4 בסך הכל), נכנס למלאי הגיבור גם בלי שישתתף.</p>
+    <p class="note" id="btLegend" style="margin:0 0 6px"></p>
+    <div class="tbl"><table class="nice" id="btTable"><thead id="btHead"></thead><tbody id="btRows"></tbody></table></div>
+    <p class="note empty" id="btEmpty"></p>
+    <p class="note">הנוסחה: סימולטור Kirilloid (בזיזה: עיגול אבדות לכל סוג יחידה, K=1.5 בקרבות קטנים, הגנת בסיס 10, בלי מורל). 🛡 = ההגנה האפקטיבית של הנווה מול ההרכב שבחרת (רגלים/פרשים בריחוף). שלל = לכל משאב ×4, נכנס למלאי הגיבור גם בלי שישתתף.</p>
   </div>
-
   </section>
+
   <p class="note">מקור: תגובות map/position של המשחק שנשמרו ב-HAR. חיות: u31 חולדה … u40 פיל. המפה 401×401 וחוזרת על עצמה (המרחק מחושב בהתאם). גרסה 2026-10-29</p>
 </div>
 
@@ -263,11 +280,12 @@ const ORDER = ['elephant', 'tiger', 'crocodile', 'bear', 'wolf', 'boar', 'bat', 
 const RES = { 1: 'עץ', 2: 'חמר', 3: 'ברזל', 4: 'יבול' };
 let M = { tiles: {}, adventures: [], at: 0 };
 let P = { ref: '', x: null, y: null, animal: 'elephant', minCount: 1, maxDist: 60, freeOnly: true, bt: null };
-const BT0 = () => ({ tribe: '', dist: 15, mode: 'attack', animalsOnly: true, freeOnly: true, hero: { on: false, str: 0, bonus: 0, mounted: false }, ups: {}, mine: {}, feasible: false });   // על נווה יש רק בזיזה (אין התקפה רגילה)
+const BT0 = () => ({ tribe: '', dist: 15, mode: 'attack', animalsOnly: true, freeOnly: true, hero: { on: false, str: 0, bonus: 0, mounted: false }, ups: {}, mine: {}, feasible: true, preset: 'all', v2: 1 });   // על נווה יש רק בזיזה (אין התקפה רגילה)
 const CG0 = () => ({ dist: 30, speed: 7, cages: 10, sort: 'cage', freeOnly: true });
 try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o) P = Object.assign(P, o); } catch (e) {}
 if (!P.cg || typeof P.cg !== 'object') P.cg = CG0(); P.cg = Object.assign(CG0(), P.cg);
 if (!P.bt || typeof P.bt !== 'object') P.bt = BT0(); P.bt = Object.assign(BT0(), P.bt); P.bt.hero = Object.assign(BT0().hero, P.bt.hero || {});
+if (!P.bt.v2) { P.bt.feasible = true; P.bt.v2 = 1; }   // ברירת מחדל חדשה למי שכבר היה לו מצב שמור
 function loadMap() { try { const o = JSON.parse(localStorage.getItem(MAPKEY) || 'null'); if (o && o.tiles) M = o; } catch (e) {} }
 function saveP() { try { localStorage.setItem(KEY, JSON.stringify(P)); if (window.TSync) TSync.touch(KEY); } catch (e) {} }
 function villages() { try { const c = JSON.parse(localStorage.getItem(CPKEY) || 'null'); return c && c.order ? c.order.map(id => c.villages[id]).filter(v => v && v.x != null) : []; } catch (e) { return []; } }
@@ -306,11 +324,12 @@ function render() {
   if (P.ref !== 'manual') { const v = vs.find(v => v.id === P.ref); if (v) { P.x = v.x; P.y = v.y; } }
   $('refX').value = P.x ?? ''; $('refY').value = P.y ?? ''; $('refX').disabled = $('refY').disabled = P.ref !== 'manual';
   $('animal').value = P.animal; $('minCount').value = P.minCount; $('maxDist').value = P.maxDist; $('freeOnly').checked = P.freeOnly;
-  $('thAnimal').textContent = ['any', 'all', 'none'].includes(P.animal) ? 'חיות' : ANP[P.animal];
+  $('thAnimal').textContent = ['any', 'all', 'none'].includes(P.animal) ? 'חיות' : EMO[P.animal] + ' ' + ANP[P.animal];
   const n = Object.values(M.tiles).length, oas = Object.values(M.tiles).filter(t => t.k && t.k.startsWith('oasis')), el = oas.filter(t => t.a && t.a.elephant).length;
-  $('stats').innerHTML = n ? `<span class="chip">${n.toLocaleString('en-US')} משבצות במאגר</span><span class="chip">${oas.length} נאות</span><span class="chip c">${el} עם פילים</span><span class="chip">עודכן ${M.at ? new Date(M.at).toLocaleString('he-IL') : '—'}</span>` : '<span class="chip w">אין עדיין מפה – טען קובץ HAR</span>';
+  $('stats').innerHTML = n ? `<span class="chip">🗺️ ${n.toLocaleString('en-US')} משבצות</span><span class="chip">${oas.length} נאות</span><span class="chip c">🐘 ${el} נאות עם פילים</span><span class="chip">עודכן ${M.at ? new Date(M.at).toLocaleString('he-IL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—'}</span>` : '<span class="chip w">אין עדיין מפה – ייבא קובץ בכפתור 📂 למעלה</span>';
   const rows = current();
-  $('rows').innerHTML = rows.map((t, i) => `<tr><td>${i + 1}</td><td><span dir="ltr">${coord(t.x, t.y)}</span></td><td class="n">${t.d.toFixed(1)}</td><td>${stateText(t)}</td><td>${bonusText(t)}</td><td class="n el">${['any', 'all', 'none'].includes(P.animal) ? (t.a ? Object.values(t.a).reduce((s, v) => s + v, 0) : 0) : (t.a && t.a[P.animal]) || 0}</td><td class="an">${animalsText(t)}</td><td><button class="small" data-copy="${i}">העתק</button></td></tr>`).join('');
+  const mainA = ['any', 'all', 'none'].includes(P.animal) ? null : P.animal;
+  $('rows').innerHTML = rows.map((t, i) => `<tr><td>${i + 1}</td><td>${placeCell(t)}</td><td class="n el">${mainA ? ((t.a && t.a[mainA]) || 0) : (t.a ? Object.values(t.a).reduce((s, v) => s + v, 0) : 0)}</td><td class="an">${animalsHtml(t.a, mainA)}</td><td>${bonusHtml(t)}</td><td><button class="small" data-copy="${i}" title="העתק שורה">📋</button></td></tr>`).join('');
   $('empty').textContent = rows.length ? '' : (n ? 'אין נאות שמתאימות לסינון.' : '');
   $('rows').querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click', () => copyText(lineText(rows[+b.dataset.copy], +b.dataset.copy))));
   $('copyBox').value = rows.map((t, i) => lineText(t, i)).join('\n');
@@ -359,6 +378,21 @@ window.TT_EXT_APPLY = (d, force) => {
   if (tiles.length) render(); return m;
 };
 
+// ---------- עזרי תצוגה: אימוג'י, זמן, תגים
+const EMO = { rat: '🐀', spider: '🕷️', snake: '🐍', bat: '🦇', boar: '🐗', wolf: '🐺', bear: '🐻', crocodile: '🐊', tiger: '🐅', elephant: '🐘' };
+const RESE = { 1: '🪵', 2: '🧱', 3: '⛏️', 4: '🌾' };
+function animalsHtml(a, main) {   // אייקון + מספר, מהחזקה לחלשה; main = החיה המסוננת (מודגשת)
+  a = a || {}; const ks = ORDER.filter(k => a[k]); if (!ks.length) return '<span class="note">אין חיות</span>';
+  return `<span class="ani">${ks.map(k => `<span class="ai${k === main ? ' main' : ''}" title="${a[k]} ${ANP[k]}">${EMO[k]}<b>${a[k]}</b></span>`).join('')}</span>`;
+}
+const fmtT = h => { if (!(h > 0)) return ''; const m = Math.round(h * 60); const hh = Math.floor(m / 60), mm = m % 60; return hh ? `${hh} ש׳${mm ? ' ' + mm + ' דק׳' : ''}` : `${mm} דק׳`; };
+const fmtH = fmtT;
+const nf = n => Math.round(n).toLocaleString('en-US');
+function placeCell(t, extra) {   // קואורדינטות + מרחק + מצב, בתא אחד
+  return `<span dir="ltr" class="xy">${coord(t.x, t.y)}</span><div class="note">${t.d != null ? `מרחק ${t.d.toFixed(1)}` : ''}${extra ? ' · ' + extra : ''}${t.k === 'oasis_taken' ? ` · <span class="badge gray" title="${esc(stateText(t))}">תפוס</span>` : ''}</div>`;
+}
+function bonusHtml(t) { return (t.b || []).map(([r, p]) => `${RESE[r]} ${p}%`).join(' + ') || '—'; }
+
 // ---------- החיות שלי: מהכוחות בכפר (u31..u40 במסך הראשי)
 const U_ANIMAL = { u31: 'rat', u32: 'spider', u33: 'snake', u34: 'bat', u35: 'boar', u36: 'wolf', u37: 'bear', u38: 'crocodile', u39: 'tiger', u40: 'elephant' };
 const DEF_UNITS = { romans: ['praetorian', 'legionnaire'], teutons: ['spearman', 'paladin'], gauls: ['phalanx', 'druidrider'], egyptians: ['ash_warden', 'anhur_guard'], huns: ['mercenary', 'marksman'] };
@@ -369,19 +403,20 @@ function bestDefUnit(tribe) {   // יחידת ההגנה עם הכי הרבה ה
 }
 function renderMine() {
   let vs = []; try { const c = JSON.parse(localStorage.getItem(CPKEY) || 'null'); vs = c && c.order ? c.order.map(id => c.villages[id]).filter(Boolean) : []; } catch (e) {}
-  const rows = []; let tdi = 0, tdc = 0, tcrop = 0, tn = 0;
+  const rows = []; let tdi = 0, tdc = 0, tcrop = 0, tn = 0; const tot = {};
   for (const v of vs) {
     const tr = v.troops || {}; const an = {}; let di = 0, dc = 0, n = 0;
-    for (const u in tr) { const k = U_ANIMAL[u]; if (!k || !(tr[u] > 0)) continue; an[k] = tr[u]; n += tr[u]; di += tr[u] * TCombat.ANIMAL[k].di; dc += tr[u] * TCombat.ANIMAL[k].dc; }
+    for (const u in tr) { const k = U_ANIMAL[u]; if (!k || !(tr[u] > 0)) continue; an[k] = tr[u]; tot[k] = (tot[k] || 0) + tr[u]; n += tr[u]; di += tr[u] * TCombat.ANIMAL[k].di; dc += tr[u] * TCombat.ANIMAL[k].dc; }
     if (!n) continue;
-    const tribe = TCombat.UNITS[v.tribe] ? v.tribe : 'romans'; const bd = bestDefUnit(tribe); const bu = bd.u; const avg = (di + dc) / 2;
+    const tribe = TCombat.UNITS[v.tribe] ? v.tribe : 'romans'; const bu = bestDefUnit(tribe).u; const avg = (di + dc) / 2;
     const eq = Math.round(avg / ((bu.di + bu.dc) / 2)); const crop = eq * bu.u;   // אותה יחידה לשני המספרים: N יחידות × הכלכלה שלהן
     tdi += di; tdc += dc; tcrop += crop; tn += n;
-    rows.push(`<tr><td>${esc(v.name)}</td><td class="an">${animalsText({ a: an })}</td><td class="n">${di.toLocaleString('en-US')} / ${dc.toLocaleString('en-US')}</td><td class="n">${eq.toLocaleString('en-US')} ${bu.name}</td><td class="n"><b>${Math.round(crop).toLocaleString('en-US')}</b> יבול/שעה</td><td class="n">${v.at ? new Date(v.at * 1000).toLocaleString('he-IL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—'}</td></tr>`);
+    rows.push(`<tr><td><b>${esc(v.name)}</b></td><td class="an">${animalsHtml(an)}</td><td class="n">${nf(di)} / ${nf(dc)}</td><td class="n">${nf(eq)} ${bu.name}</td><td class="n"><b>${nf(crop)}</b> 🌾/שעה</td><td class="n note">${v.at ? new Date(v.at * 1000).toLocaleString('he-IL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—'}</td></tr>`);
   }
-  if (rows.length > 1) rows.push(`<tr style="font-weight:700"><td>סה"כ</td><td class="an">${tn} חיות</td><td class="n">${tdi.toLocaleString('en-US')} / ${tdc.toLocaleString('en-US')}</td><td></td><td class="n">${Math.round(tcrop).toLocaleString('en-US')} יבול/שעה</td><td></td></tr>`);
   $('myRows').innerHTML = rows.join('');
-  $('myEmpty').textContent = rows.length ? '' : (vs.length ? 'אין חיות בכפרים שנקלטו. (צריך את המסך הראשי של הכפר בקובץ/בתוסף.)' : 'אין עדיין כפרים – ייבא קובץ בסרגל למעלה.');
+  $('myStat').innerHTML = tn ? `<div class="big">🛡 ${nf((tdi + tdc) / 2)} <span class="note">הגנה ממוצעת</span></div><div class="big">🌾 ${nf(tcrop)} <span class="note">יבול/שעה שאתה חוסך</span></div><div class="big">${animalsHtml(tot)} <span class="note">${tn} חיות</span></div>` : '';
+  $('myStat').classList.toggle('hidden', !tn);
+  $('myEmpty').textContent = rows.length ? '' : (vs.length ? 'אין חיות בכפרים שנקלטו – צריך את המסך הראשי של הכפר בקובץ או בתוסף.' : 'אין עדיין כפרים – ייבא קובץ בכפתור 📂 למעלה.');
 }
 
 // ---------- כלובים: סבבים חולדה→פיל, כמה שווה לקחת מכל נווה
@@ -395,7 +430,6 @@ function cageSeq(a) {   // רצף התפיסה: כלוב k → חיה
 function cagePlan(a) {   // כמה כלובים לקחת: הסבב הבא נכנס רק אם ההגנה לכלוב לא יורדת ביותר מ-3%
   const seq = cageSeq(a); if (!seq.length) return null;
   const val = k => (TCombat.ANIMAL[k].di + TCombat.ANIMAL[k].dc) / 2;
-  const types = Object.keys(a).filter(k => a[k] > 0).length;
   let best = null, cum = 0, cumI = 0, cumC = 0; const rounds = [];
   for (let i = 0; i < seq.length; i++) {
     cum += val(seq[i]); cumI += TCombat.ANIMAL[seq[i]].di; cumC += TCombat.ANIMAL[seq[i]].dc;
@@ -405,12 +439,14 @@ function cagePlan(a) {   // כמה כלובים לקחת: הסבב הבא נכנ
   const max = Math.max(...rounds.map(r => r.per));
   for (const r of rounds) if (r.per >= max * 0.97) best = r;   // הסבב הגדול ביותר שעדיין קרוב למקסימום
   const got = {}; for (const k of seq.slice(0, best.k)) got[k] = (got[k] || 0) + 1;
-  return { k: best.k, per: best.per, di: best.di, dc: best.dc, got, total: seq.length, rounds };
+  return { k: best.k, per: best.per, di: best.di, dc: best.dc, got, total: seq.length, rounds, seq };
 }
+function gotOf(seq, k) { const got = {}; for (const x of seq.slice(0, k)) got[x] = (got[x] || 0) + 1; return got; }
 function gotText(got) { return CAGE_ORDER.slice().reverse().filter(k => got[k]).map(k => `${got[k]} ${got[k] === 1 ? AN[k] : ANP[k]}`).join(', '); }
 let CG_ROWS = [];
 function renderCg() {
-  $('cgDist').value = P.cg.dist; $('cgSpeed').value = P.cg.speed; $('cgCages').value = P.cg.cages; $('cgSort').value = P.cg.sort; $('cgFree').checked = P.cg.freeOnly;
+  $('cgDist').value = P.cg.dist; $('cgSpeed').value = P.cg.speed; $('cgCages').value = P.cg.cages; $('cgFree').checked = P.cg.freeOnly;
+  $('cgSortPills').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.sort === P.cg.sort ? 'true' : 'false'));
   const x = P.x, y = P.y; const out = [];
   if (x != null && y != null) for (const t of Object.values(M.tiles)) {
     if (!t.k || !t.k.startsWith('oasis') || !t.a) continue;
@@ -423,101 +459,114 @@ function renderCg() {
   const key = P.cg.sort === 'hour' ? r => r.perHour : P.cg.sort === 'total' ? r => r.tot : r => r.p.per;
   out.sort((a, b) => key(b) - key(a) || a.d - b.d);
   CG_ROWS = out;
-  // תוכנית לפי הכלובים שיש: לפי הדירוג, נווה שלם כל עוד נכנס
+  // תוכנית לפי הכלובים שיש: לפי הדירוג, מכל נווה הסבבים השלמים שנכנסים
   let left = Math.max(0, Math.floor(P.cg.cages || 0)); const plan = []; let pdi = 0, pdc = 0;
-  for (const r of out) { if (left <= 0) break; let pick = null; for (const rd of r.p.rounds) if (rd.k <= Math.min(left, r.p.k)) pick = rd; if (pick) { plan.push([r, pick.k]); left -= pick.k; pdi += pick.di; pdc += pick.dc; } }   // מכל נווה: הסבבים השלמים שנכנסים בכלובים שנשארו
-  $('cgPlan').innerHTML = plan.length ? `<span class="chip c">עם ${P.cg.cages} כלובים: ${plan.map(([r, k]) => `${coord(r.x, r.y)} ×${k}`).join(' · ')} → הגנה ${pdi.toLocaleString('en-US')} / ${pdc.toLocaleString('en-US')}${left ? ` (נשארים ${left})` : ''}</span>` : '';
-  const planK = new Map(plan.map(([r, k]) => [r.x + '|' + r.y, k]));
-  $('cgRows').innerHTML = out.map((r, i) => `<tr${planK.has(r.x + '|' + r.y) ? ' style="background:var(--ok-soft)"' : ''}><td>${i + 1}</td><td><span dir="ltr">${coord(r.x, r.y)}</span>${r.k === 'oasis_taken' ? `<div class="note">${esc(stateText(r))}</div>` : ''}</td><td class="n">${r.d.toFixed(1)}</td><td class="n">${fmtH(r.hrs)}</td><td class="an">${animalsText(r)}</td><td class="n el">${r.p.k}<div class="note">מתוך ${r.p.total}${planK.has(r.x + '|' + r.y) && planK.get(r.x + '|' + r.y) !== r.p.k ? ` · בתוכנית: ${planK.get(r.x + '|' + r.y)}` : ''}</div></td><td class="an">${gotText(r.p.got)}</td><td class="n">${r.p.di.toLocaleString('en-US')} / ${r.p.dc.toLocaleString('en-US')}</td><td class="n"><b>${Math.round(r.p.per)}</b></td><td class="n">${Math.round(r.perHour).toLocaleString('en-US')}</td><td><button class="small" data-cgcopy="${i}">העתק</button></td></tr>`).join('');
-  $('cgEmpty').textContent = out.length ? '' : (Object.keys(M.tiles).length ? 'אין נאות עם חיות בטווח הזה.' : 'אין עדיין מפה – טען קובץ HAR.');
+  for (const r of out) { if (left <= 0) break; let pick = null; for (const rd of r.p.rounds) if (rd.k <= Math.min(left, r.p.k)) pick = rd; if (pick) { plan.push([r, pick]); left -= pick.k; pdi += pick.di; pdc += pick.dc; } }
+  const planK = new Map(plan.map(([r, pk]) => [r.x + '|' + r.y, pk.k]));
+  const hrsPlan = plan.reduce((s, [r]) => s + r.hrs, 0);
+  $('cgPlan').innerHTML = plan.length ? `<div class="big">🧺 עם ${P.cg.cages} כלובים <span class="note">→ 🛡 ${nf(pdi)} / ${nf(pdc)} · ${fmtT(hrsPlan)} נסיעות${left ? ` · נשארים ${left}` : ''}</span></div><ol class="planlist">${plan.map(([r, pk]) => `<li><span dir="ltr" class="xy">${coord(r.x, r.y)}</span> <b>${pk.k} כלובים</b> → ${animalsHtml(gotOf(r.p.seq, pk.k))} <span class="note">· ${fmtT(r.hrs)} הלוך-חזור</span></li>`).join('')}</ol>` : '';
+  $('cgPlan').classList.toggle('hidden', !plan.length);
+  $('cgRows').innerHTML = out.map((r, i) => { const inPlan = planK.get(r.x + '|' + r.y); return `<tr${inPlan ? ' class="inplan"' : ''}><td>${i + 1}</td><td>${placeCell(r, fmtT(r.hrs) + ' הלוך-חזור')}</td><td class="an">${animalsHtml(r.a)}</td><td class="sep ans"><b>${r.p.k} כלובים</b>${inPlan ? `<div class="note ok">✓ בתוכנית${inPlan !== r.p.k ? ': ' + inPlan : ''}</div>` : ''}</td><td class="an">${animalsHtml(r.p.got)}</td><td class="n">${nf(r.p.di)} / ${nf(r.p.dc)}</td><td class="n"><b>${nf(r.p.per)}</b></td><td class="n">${nf(r.perHour)}</td><td><button class="small" data-cgcopy="${i}" title="העתק שורה">📋</button></td></tr>`; }).join('');
+  $('cgEmpty').textContent = out.length ? '' : (Object.keys(M.tiles).length ? 'אין נאות עם חיות בטווח הזה.' : 'אין עדיין מפה – ייבא קובץ בכפתור 📂 למעלה.');
   $('cgRows').querySelectorAll('[data-cgcopy]').forEach(b => b.addEventListener('click', () => copyText(cgLine(CG_ROWS[+b.dataset.cgcopy], +b.dataset.cgcopy), 'cgMsg')));
 }
-function cgLine(r, i) { return `${i + 1}. ${coord(r.x, r.y)} מרחק ${r.d.toFixed(1)} (${fmtH(r.hrs)} הלוך-חזור) — ${r.p.k} כלובים → ${gotText(r.p.got)} — הגנה ${r.p.di}/${r.p.dc} (${Math.round(r.p.per)} לכלוב) — בנווה: ${animalsText(r)}`; }
+function cgLine(r, i) { return `${i + 1}. ${coord(r.x, r.y)} מרחק ${r.d.toFixed(1)} (${fmtT(r.hrs)} הלוך-חזור) — ${r.p.k} כלובים → ${gotText(r.p.got)} — הגנה ${r.p.di}/${r.p.dc} (${Math.round(r.p.per)} לכלוב) — בנווה: ${animalsText(r)}`; }
 $('cgDist').addEventListener('change', () => { P.cg.dist = Math.max(1, +$('cgDist').value || 30); saveP(); renderCg(); });
 $('cgSpeed').addEventListener('change', () => { P.cg.speed = Math.max(1, +$('cgSpeed').value || 7); saveP(); renderCg(); });
 $('cgCages').addEventListener('change', () => { P.cg.cages = Math.max(0, +$('cgCages').value || 0); saveP(); renderCg(); });
-$('cgSort').addEventListener('change', () => { P.cg.sort = $('cgSort').value; saveP(); renderCg(); });
+$('cgSortPills').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { P.cg.sort = b.dataset.sort; saveP(); renderCg(); }));
 $('cgFree').addEventListener('change', () => { P.cg.freeOnly = $('cgFree').checked; saveP(); renderCg(); });
 $('cgCopy').addEventListener('click', () => { const vref = P.ref === 'manual' ? null : villages().find(v => v.id === P.ref); const refName = vref ? `${vref.name} ${coord(P.x, P.y)}` : coord(P.x, P.y); copyText([`כלובים – נאות עד מרחק ${P.cg.dist} מ-${refName}, לפי ${P.cg.sort === 'hour' ? 'הגנה לשעת גיבור' : P.cg.sort === 'total' ? 'הגנה בנסיעה' : 'הגנה לכלוב'}:`].concat(CG_ROWS.map(cgLine)).join('\n'), 'cgMsg'); });
 
 // ---------- כמה לשלוח לכל נווה (TCombat)
+const SHORT = { ei: 'EI', ec: 'EC', theutates_thunder: 'TT', druidrider: 'דרואיד', haeduan: 'האדואן', teutonic_knight: 'אביר', paladin: 'פלאדין', clubswinger: 'אלה', axeman: 'גרזן', swordsman: 'סייף', steppe_rider: 'ערבות', marksman: 'צלף', marauder: 'שודד', mercenary: 'שכיר', bowman: 'קשת', resheph_chariot: 'מרכבה', anhur_guard: 'אנהור', khopesh: 'חופש', ash_warden: 'שומר', slave_militia: 'מיליציה' };
+const shortName = u => SHORT[u.id] || u.name;
 function cpTribe() { try { const c = JSON.parse(localStorage.getItem(CPKEY) || 'null'); const v = c && c.villages && c.villages[c.cur]; return (v && v.tribe) || ''; } catch (e) { return ''; } }
 function btTribe() { return TCombat.UNITS[P.bt.tribe] ? P.bt.tribe : (TCombat.UNITS[cpTribe()] ? cpTribe() : 'romans'); }
 function cpHero() { try { const c = JSON.parse(localStorage.getItem(CPKEY) || 'null'); return c && c.account && c.account.hero || null; } catch (e) { return null; } }
 function btCtx() { const h = P.bt.hero; return { tribe: btTribe(), upgrades: P.bt.ups || {}, hero: h.on && h.str > 0 ? { str: +h.str, offBonus: +h.bonus || 0, mounted: !!h.mounted } : null, mode: 'raid' }; }
-const fmtH = h => { if (!(h > 0)) return ''; const m = Math.round(h * 60); return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`; };
+function presetList(tribe) {   // הרכבים עם שם קצר ותיאור הסדר
+  const list = TCombat.UNITS[tribe]; return TCombat.presets(tribe).map(p => { const us = list.filter(u => p.ratio[u.id]); return Object.assign(p, { label: p.id === 'all' ? us.map(() => '1').join(':') : p.id === 'cav' ? 'פרשים' : shortName(us[0]), order: us.map(shortName).join(' - '), units: us }); });
+}
 function btRows() {
   const x = P.x, y = P.y; if (x == null || y == null) return [];
   const out = [];
   for (const t of Object.values(M.tiles)) {
     if (!t.k || !t.k.startsWith('oasis')) continue;
     if (P.bt.freeOnly && t.k !== 'oasis_free') continue;
-    const cnt = t.a ? Object.values(t.a).reduce((s, v) => s + v, 0) : 0;
-    if (P.bt.animalsOnly && !cnt) continue;
+    const cnt = t.a ? Object.values(t.a).reduce((s, v) => s + v, 0) : 0; if (!cnt) continue;
     const d = dist(x, y, t.x, t.y); if (d > P.bt.dist) continue;
     out.push(Object.assign({ d, cnt }, t));
   }
   return out.sort((p, q) => p.d - q.d);
 }
-function btCell(t, preset, ctx) {
-  const tribe = ctx.tribe, an = t.a || {}; const base = Object.assign({}, ctx, { animals: an });
-  const raid = ctx.mode === 'raid';
-  const a = TCombat.minParty(preset.ratio, base, { maxLoss: 0, killAll: !raid });
-  const b = TCombat.minParty(preset.ratio, base, { maxLoss: 1, killAll: !raid });
-  const c = raid ? TCombat.minParty(preset.ratio, base, { maxLoss: 0, killAll: true }) : null;
-  const sp = TCombat.speedOf(tribe, preset.ratio, ctx.hero); const tm = sp ? fmtH(t.d / sp) : '';
+function btCalc(t, preset, ctx) {   // לכל הרכב: מינימום בלי אבדות, ≤1, הכל מת, זמן, הגנה אפקטיבית
+  const tribe = ctx.tribe, base = Object.assign({}, ctx, { animals: t.a || {} });
+  const a = TCombat.minParty(preset.ratio, base, { maxLoss: 0 });
+  const b = a && a.mult === 1 ? null : TCombat.minParty(preset.ratio, base, { maxLoss: 1 });
+  const c = TCombat.minParty(preset.ratio, base, { maxLoss: 0, killAll: true });
+  const sp = TCombat.speedOf(tribe, preset.ratio, ctx.hero); const hrs = sp ? t.d / sp : 0;
+  const probe = TCombat.battle(Object.assign({}, base, { units: preset.ratio }));
   const txt = r => TCombat.partyText(tribe, r.units);
-  let h = '';
-  if (a) { h += `<b>${txt(a)}</b>`; if (raid) h += ` <span class="note">הורג ${a.result.killedTotal}/${a.result.atotal}</span>`; }
-  else h += '<span class="note">—</span>';
-  if (b && (!a || b.mult < a.mult)) h += `<div class="note">≤1: ${txt(b)}${raid ? ` (הורג ${b.result.killedTotal}/${b.result.atotal})` : ''}</div>`;
-  if (raid && c && (!a || c.mult > a.mult)) h += `<div class="note">הכל מת: ${txt(c)}</div>`;
-  if (tm) h += `<div class="note">⏱ ${tm}</div>`;
-  return { html: h, text: a ? txt(a) : (b ? '≤1:' + txt(b) : '—'), ok: !!a };
+  return { a, b, c, hrs, def: probe.def, defI: probe.defI, defC: probe.defC, txt, ok: !!a };
 }
-function mineCell(t, ctx) {
+function mineCalc(t, ctx) {
   const units = {}; let any = false; for (const k in P.bt.mine) if (P.bt.mine[k] > 0) { units[k] = +P.bt.mine[k]; any = true; }
   if (!any) return null;
   const r = TCombat.battle(Object.assign({}, ctx, { units, animals: t.a || {} }));
   const sp = TCombat.speedOf(ctx.tribe, units, ctx.hero);
   const loss = TCombat.UNITS[ctx.tribe].filter(u => units[u.id] > 0).map(u => r.losses[u.id] || 0).join('-');
-  const html = `<b>${r.lostTotal ? 'אבדות ' + loss : 'בלי אבדות'}</b><div class="note">הורג ${r.killedTotal}/${r.atotal} · שלל ${r.bounty.toLocaleString('en-US')}×4 · נטו ${r.net >= 0 ? '+' : ''}${r.net.toLocaleString('en-US')}${r.heroHealth ? ` · גיבור −${r.heroHealth}%` : ''}</div>${sp ? `<div class="note">⏱ ${fmtH(t.d / sp)}</div>` : ''}`;
-  return { html, bad: r.lostTotal > 0 && r.net < 0, text: `${r.lostTotal ? 'אבדות ' + loss : 'בלי אבדות'}, הורג ${r.killedTotal}/${r.atotal}, שלל ${r.bounty}×4` };
+  const head = r.lostTotal ? `אבדות ${loss}` : 'בלי אבדות';
+  return { html: `<b class="${r.lostTotal ? (r.net < 0 ? 'bad' : 'warnc') : 'okc'}">${head}</b><div class="note">הורג ${r.killedTotal}/${r.atotal} · נטו ${r.net >= 0 ? '+' : ''}${nf(r.net)}${r.heroHealth ? ` · גיבור −${r.heroHealth}%` : ''}${sp ? ` · ${fmtT(t.d / sp)}` : ''}</div>`, text: `${head}, הורג ${r.killedTotal}/${r.atotal}, שלל ${r.bounty}×4` };
 }
 function obsText(t) {   // תצפיות חיות מהתוסף: כמה פעמים נראה, ומה השתנה לאחרונה
   const O = loadObs(); const l = O[t.x + '|' + t.y]; if (!l || !l.length) return '';
   const tot = o => Object.values(o[1] || {}).reduce((s, v) => s + v, 0); const last = l[l.length - 1];
-  let h = `<div class="note">נצפה ${l.length}× · אחרון ${extFmt(last[2] || last[0])}`;
-  if (l.length >= 2) { const prev = l[l.length - 2]; const d = tot(last) - tot(prev); const hrs = Math.max(0.1, (last[0] - (prev[2] || prev[0])) / 36e5); h += ` · ${d >= 0 ? '+' : ''}${d} תוך ${hrs < 1 ? Math.round(hrs * 60) + ' דק׳' : hrs.toFixed(1) + ' ש׳'}`; }
+  let h = `<div class="note">נצפה ${l.length}× · ${extFmt(last[2] || last[0])}`;
+  if (l.length >= 2) { const prev = l[l.length - 2]; const d = tot(last) - tot(prev); const hrs = Math.max(0.1, (last[0] - (prev[2] || prev[0])) / 36e5); h += ` · ${d >= 0 ? '+' : ''}${d} תוך ${fmtT(hrs)}`; }
   return h + '</div>';
 }
-function defText(t) { const an = t.a || {}; let di = 0, dc = 0; for (const k in an) { const A = TCombat.ANIMAL[k]; if (A) { di += an[k] * A.di; dc += an[k] * A.dc; } } return `${di.toLocaleString('en-US')} / ${dc.toLocaleString('en-US')}`; }
 function bountyOf(t) { const an = t.a || {}; let b = 0; for (const k in an) { const A = TCombat.ANIMAL[k]; if (A) b += an[k] * A.bounty; } return b; }
-let BT_LINES = [];
+let BT_LINES = [], BT_DETAILS = {};
 function renderBt() {
-  const tribe = btTribe(); $('btTribe').value = tribe; $('btDist').value = P.bt.dist; P.bt.mode = 'raid'; $('btAnimals').checked = P.bt.animalsOnly; $('btFree').checked = P.bt.freeOnly; $('btFeasible').checked = !!P.bt.feasible;
+  const tribe = btTribe(); $('btTribe').value = tribe; $('btDist').value = P.bt.dist; P.bt.mode = 'raid'; $('btFree').checked = P.bt.freeOnly; $('btFeasible').checked = !!P.bt.feasible;
   const ch = cpHero(); if (ch && !(P.bt.hero.str > 0)) P.bt.hero.str = ch.fighting;
   $('btHero').checked = !!P.bt.hero.on; $('btHeroStr').value = P.bt.hero.str || 0; $('btHeroBonus').value = P.bt.hero.bonus || 0; $('btHeroMount').checked = !!P.bt.hero.mounted;
   const list = TCombat.UNITS[tribe];
   $('btUnits').innerHTML = list.map(u => `<div class="uinp"><b>${u.name}</b><label class="f">נפחייה<input type="number" min="0" max="20" data-up="${u.id}" value="${P.bt.ups[u.id] || 0}"></label><label class="f">יש לי<input type="number" min="0" data-mine="${u.id}" value="${P.bt.mine[u.id] || ''}"></label></div>`).join('');
   $('btUnits').querySelectorAll('[data-up]').forEach(i => i.addEventListener('change', () => { P.bt.ups[i.dataset.up] = Math.max(0, Math.min(20, +i.value || 0)); saveP(); renderBt(); }));
   $('btUnits').querySelectorAll('[data-mine]').forEach(i => i.addEventListener('change', () => { P.bt.mine[i.dataset.mine] = Math.max(0, +i.value || 0); saveP(); renderBt(); }));
-  const ctx = btCtx(); const presets = TCombat.presets(tribe); const rows = btRows();
-  const hasMine = Object.values(P.bt.mine).some(v => v > 0);
-  $('btHead').innerHTML = `<tr><th>#</th><th>מיקום</th><th class="n">מרחק</th><th>חיות</th><th>הגנה רגלים/פרשים</th><th class="n">שלל</th>${presets.map(p => `<th>${esc(p.name)}${ctx.hero ? ' <span class="note">+גיבור</span>' : ''}</th>`).join('')}${hasMine ? `<th>הכוח שלי${ctx.hero ? ' <span class="note">+גיבור</span>' : ''}</th>` : ''}<th></th></tr>`;
-  BT_LINES = [];
-  const shown = []; for (const t of rows) { const cells = presets.map(p => btCell(t, p, ctx)); if (P.bt.feasible && !cells.some(c => c.ok)) continue; shown.push([t, cells]); }
-  $('btRows').innerHTML = shown.map(([t, cells], i) => {
-    const mine = hasMine ? mineCell(t, ctx) : null;
-    BT_LINES.push(`${i + 1}. ${coord(t.x, t.y)} מרחק ${t.d.toFixed(1)} — ${animalsText(t)} — ` + presets.map((p, j) => `${p.name}: ${cells[j].text}`).join(' · ') + (mine ? ` — הכוח שלי: ${mine.text}` : ''));
-    return `<tr><td>${i + 1}</td><td><span dir="ltr">${coord(t.x, t.y)}</span>${t.k === 'oasis_taken' ? `<div class="note">${esc(stateText(t))}</div>` : ''}</td><td class="n">${t.d.toFixed(1)}</td><td class="an">${animalsText(t)}${obsText(t)}</td><td class="n">${defText(t)}</td><td class="n">${bountyOf(t).toLocaleString('en-US')}×4</td>${cells.map(c => `<td class="bt">${c.html}</td>`).join('')}${mine ? `<td class="bt${mine.bad ? ' bad' : ''}">${mine.html}</td>` : ''}<td><button class="small" data-btcopy="${i}">העתק</button></td></tr>`;
+  const ctx = btCtx(); const presets = presetList(tribe);
+  if (!presets.some(p => p.id === P.bt.preset)) P.bt.preset = presets[0].id;
+  const cur = presets.find(p => p.id === P.bt.preset);
+  const pills = $('btPresets'); pills.querySelectorAll('button').forEach(b => b.remove());
+  for (const p of presets) { const b = document.createElement('button'); b.type = 'button'; b.textContent = p.label; b.title = p.order; b.setAttribute('aria-pressed', p.id === cur.id ? 'true' : 'false'); b.addEventListener('click', () => { P.bt.preset = p.id; saveP(); renderBt(); }); pills.appendChild(b); }
+  $('btLegend').innerHTML = `סדר המספרים ב"שלח": <b>${esc(cur.order)}</b>${ctx.hero ? ' · הגיבור משתתף בכל קבוצה' : ''}`;
+  const rows = btRows(); const hasMine = Object.values(P.bt.mine).some(v => v > 0);
+  $('btHead').innerHTML = `<tr><th>#</th><th>נווה</th><th>חיות</th><th class="n c-def">🛡 הגנה</th><th class="sep">שלח</th><th class="n c-loot">שלל</th>${hasMine ? '<th>אם אשלח הכל</th>' : ''}<th></th><th></th></tr>`;
+  BT_LINES = []; BT_DETAILS = {};
+  const shown = []; for (const t of rows) { const r = btCalc(t, cur, ctx); if (P.bt.feasible && !r.ok) continue; shown.push([t, r]); }
+  $('btRows').innerHTML = shown.map(([t, r], i) => {
+    const mine = hasMine ? mineCalc(t, ctx) : null;
+    const send = r.a ? `<b>${r.txt(r.a)}</b><div class="note">הורג ${r.a.result.killedTotal}/${r.a.result.atotal}${r.c && r.c.mult > r.a.mult ? ` · הכל מת: ${r.txt(r.c)}` : ''}${r.hrs ? ` · ${fmtT(r.hrs)}` : ''}</div>` : `<span class="note">אין קבוצה בלי אבדות</span>${r.b ? `<div class="note">≤1 אבדה: ${r.txt(r.b)}</div>` : ''}`;
+    BT_LINES.push(`${i + 1}. ${coord(t.x, t.y)} מרחק ${t.d.toFixed(1)} — ${animalsText(t)} — ${cur.order}: ${r.a ? r.txt(r.a) + ` (הורג ${r.a.result.killedTotal}/${r.a.result.atotal})` : (r.b ? '≤1 אבדה: ' + r.txt(r.b) : '—')}${r.hrs ? ` — ${fmtT(r.hrs)}` : ''}${mine ? ` — הכוח שלי: ${mine.text}` : ''}`);
+    BT_DETAILS[i] = { t, ctx };
+    return `<tr data-i="${i}"><td>${i + 1}</td><td>${placeCell(t)}</td><td class="an">${animalsHtml(t.a)}${obsText(t)}</td><td class="n c-def" title="רגלים ${nf(r.defI)} / פרשים ${nf(r.defC)}">${nf(r.def)}</td><td class="sep ans">${send}</td><td class="n c-loot" title="${nf(bountyOf(t))} מכל סוג">${nf(bountyOf(t) * 4)}</td>${mine ? `<td class="ans">${mine.html}</td>` : ''}<td><button class="small" data-btdet="${i}" title="כל ההרכבים">▾</button></td><td><button class="small" data-btcopy="${i}" title="העתק שורה">📋</button></td></tr>`;
   }).join('');
-  $('btEmpty').textContent = shown.length ? '' : (Object.keys(M.tiles).length ? (rows.length ? 'אין נווה בטווח שאפשר לנקות בלי אבדות בהרכב כלשהו.' : 'אין נאות בטווח הזה (או שאין בהן חיות).') : 'אין עדיין מפה – טען קובץ HAR.');
+  $('btEmpty').textContent = shown.length ? '' : (Object.keys(M.tiles).length ? (rows.length ? 'אין נווה בטווח שאפשר לנקות בלי אבדות בהרכב הזה – נסה הרכב אחר, מרחק גדול יותר, או בטל את הסינון.' : 'אין נאות עם חיות בטווח הזה.') : 'אין עדיין מפה – ייבא קובץ בכפתור 📂 למעלה.');
   $('btRows').querySelectorAll('[data-btcopy]').forEach(b => b.addEventListener('click', () => copyText(BT_LINES[+b.dataset.btcopy], 'btMsg')));
+  $('btRows').querySelectorAll('[data-btdet]').forEach(b => b.addEventListener('click', () => toggleDetails(+b.dataset.btdet, b, presets)));
+}
+function toggleDetails(i, btn, presets) {   // שורת פרטים: כל ההרכבים לנווה הזה
+  const tr = btn.closest('tr'); const next = tr.nextElementSibling;
+  if (next && next.classList.contains('det')) { next.remove(); btn.textContent = '▾'; return; }
+  const { t, ctx } = BT_DETAILS[i]; const cols = tr.children.length;
+  const body = presets.map(p => { const r = btCalc(t, p, ctx); return `<tr><td><b>${esc(p.label)}</b><div class="note">${esc(p.order)}</div></td><td class="ans">${r.a ? `<b>${r.txt(r.a)}</b> <span class="note">הורג ${r.a.result.killedTotal}/${r.a.result.atotal}</span>` : '<span class="note">—</span>'}</td><td>${r.c ? r.txt(r.c) : '<span class="note">—</span>'}</td><td>${r.b ? r.txt(r.b) : (r.a && r.a.mult === 1 ? '<span class="note">—</span>' : '<span class="note">—</span>')}</td><td class="n">${fmtT(r.hrs)}</td></tr>`; }).join('');
+  const det = document.createElement('tr'); det.className = 'det'; det.innerHTML = `<td colspan="${cols}"><table class="inner"><thead><tr><th>הרכב</th><th>בלי אבדות</th><th>הכל מת</th><th>≤1 אבדה מכל סוג</th><th class="n">זמן</th></tr></thead><tbody>${body}</tbody></table></td>`;
+  tr.after(det); btn.textContent = '▴';
 }
 $('btTribe').addEventListener('change', () => { P.bt.tribe = $('btTribe').value; saveP(); renderBt(); });
 $('btDist').addEventListener('change', () => { P.bt.dist = Math.max(1, +$('btDist').value || 15); saveP(); renderBt(); });
-$('btAnimals').addEventListener('change', () => { P.bt.animalsOnly = $('btAnimals').checked; saveP(); renderBt(); });
 $('btFree').addEventListener('change', () => { P.bt.freeOnly = $('btFree').checked; saveP(); renderBt(); });
 $('btFeasible').addEventListener('change', () => { P.bt.feasible = $('btFeasible').checked; saveP(); renderBt(); });
 $('btHero').addEventListener('change', () => { P.bt.hero.on = $('btHero').checked; saveP(); renderBt(); });

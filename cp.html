@@ -61,6 +61,7 @@ tr.done td { color: var(--muted); opacity: .55; }
 .chip.c { background: var(--cp-soft); color: var(--cp); }
 .hidden { display: none !important; }
 .lvlInline { display: none; }
+table.rank tbody tr:nth-child(even) td, .stage tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--fg) 3%, transparent); }
 @media (max-width: 480px) { th, td { padding: 4px 5px; font-size: .82rem; } body { font-size: 14px; } .idx, .lvl, .dcp { display: none; } button.small { padding: 2px 5px; font-size: .78rem; } .lvlInline { display: inline; color: var(--muted); } td.name { white-space: normal; min-width: 6em; } .rank .note { display: none; } }
 #planBody td.name { white-space: normal; min-width: 7em; }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
@@ -91,7 +92,7 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
 
   <div class="tabs" id="tabs"></div>
 
-  <section data-sub="levels" data-subname="הרמות שלי">
+  <section data-sub="levels" data-subname="🏗 הרמות שלי">
   <div class="card">
     <div class="vbar">
       <label class="f">שם הכפר<input type="text" id="vName" maxlength="30" dir="auto"></label>
@@ -117,13 +118,7 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
 
   </section>
 
-  <section data-sub="plan" data-subname="התוכנית">
-  <div class="card" id="planCard">
-    <div id="planBody"></div>
-  </div>
-  </section>
-
-  <section data-sub="rank" data-subname="מה הכי משתלם">
+  <section data-sub="rank" data-subname="💰 מה הכי משתלם">
   <div class="card">
     <h2>מה הכי משתלם עכשיו <span class="note" id="rankNote"></span></h2>
     <p class="note" style="margin-top:0">שלושת הצעדים הבאים בכל מבנה, כל צעד הוא רמה אחת או המינימום עד שנוספת נק"ת. צעד לא מדורג מעל הצעד שהוא תלוי בו, וכשההמשך משפר את המחיר (נקיק 7→9 ואז 9→10) זה מצוין בסוגריים. כשרמה לא מוסיפה נק"ת (נקיק 1→2, למשל) מוצגת קפיצה עד הרמה שכן מוסיפה. "בניתי" מעלה את הרמה ומדרג מחדש.</p>
@@ -131,8 +126,14 @@ tr.mark td { background: var(--cp-soft); color: var(--cp); font-weight: 700; tex
   </div>
 
   </section>
+  <section data-sub="plan" data-subname="📋 התוכנית">
+  <div class="card" id="planCard">
+    <div id="planBody"></div>
+  </div>
+  </section>
 
-  <section data-sub="tables" data-subname="טבלאות">
+
+  <section data-sub="tables" data-subname="📊 טבלאות">
   <div class="nav" id="nav"></div>
   <div class="jump"><b>קפוץ למבנה</b><select id="jumpSel" aria-label="קפוץ למבנה"></select><button id="toTop" type="button">↑ למעלה</button></div>
   <div id="tables"></div>
@@ -186,7 +187,8 @@ function switchVillage(id, render = true) {
 }
 function ensureVillage(did, name, xy) { if (!S.villages[did]) { S.villages[did] = newVillage(did, name); S.order.push(did); } else if (name) S.villages[did].name = name; if (xy && xy.x != null) { S.villages[did].x = xy.x; S.villages[did].y = xy.y; } return S.villages[did]; }
 function renderTabs() {
-  let h = S.order.map(id => { const v = S.villages[id]; return `<button type="button" class="tab${id === S.cur ? ' active' : ''}${id === S.def ? ' def' : ''}" data-v="${id}"><span dir="auto">${esc(v.name)}</span></button>`; }).join('');
+  const ROLE_ICON = { cropper: '🌾', feeder: '🏛', feeder_great: '🏛', feeder_none: '🏛', other: '🏠' };
+  let h = S.order.map(id => { const v = S.villages[id]; return `<button type="button" class="tab${id === S.cur ? ' active' : ''}${id === S.def ? ' def' : ''}" data-v="${id}" title="${v.role === 'cropper' ? 'קרופר' : v.role === 'other' ? 'אחר' : 'פידר'}">${ROLE_ICON[v.role] || '🏠'} <span dir="auto">${esc(v.name)}</span></button>`; }).join('');
   h += `<button type="button" class="tab add" id="tabAdd">+ כפר ידני</button>`;
   $('tabs').innerHTML = h;
   $('tabs').querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => switchVillage(b.dataset.v)));
