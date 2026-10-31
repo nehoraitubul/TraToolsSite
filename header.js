@@ -307,6 +307,25 @@
     m = t.match(/\{b:ri1\}\s*([^<{]+?)\s*\{b\.ri1\}/); if (m) o.lastRaid = m[1].trim();
     return o;
   }
+
+  // HAR חתוך (ייצוא שנקטע / קובץ ענק): סורקים רשומה-רשומה ומוותרים רק על האחרונה השבורה
+  function salvageHar(txt) {
+    const i = txt.indexOf('"entries"'); if (i < 0) return null;
+    let n = txt.indexOf('[', i); if (n < 0) return null; n++;
+    const entries = []; const L = txt.length; let broken = 0;
+    while (n < L) {
+      while (n < L && (txt[n] === ' ' || txt[n] === ',' || txt[n] === '\n' || txt[n] === '\r' || txt[n] === '\t')) n++;
+      if (txt[n] !== '{') break;
+      let depth = 0, j = n, inStr = false;
+      for (; j < L; j++) { const c = txt[j]; if (inStr) { if (c === '\\') { j++; continue; } if (c === '"') inStr = false; } else if (c === '"') inStr = true; else if (c === '{') depth++; else if (c === '}') { depth--; if (depth === 0) { j++; break; } } }
+      if (depth !== 0) { broken++; break; }
+      try { entries.push(JSON.parse(txt.slice(n, j))); } catch (e) { broken++; }
+      n = j;
+    }
+    if (!entries.length) return null;
+    return { har: { log: { entries } }, entries: entries.length, broken };
+  }
+
   function parseHar(har) {
     const entries = (har && har.log && har.log.entries) || [];
     const out = { type: 'har', pages: [], tiles: {}, symbols: [], errors: [] };
@@ -333,7 +352,7 @@
     return out;
   }
 
-  const api = { detect, parse, parseAll, parseDorf1, parseDorf2, parseVillages, htmlToText, unent, parseHar, parseMapTile, parseHeroAttr, parseHeroInv, parseCp, parseTroops, parseReports, GID, HE, TRIBE, num, clean };
+  const api = { detect, parse, parseAll, parseDorf1, parseDorf2, parseVillages, htmlToText, unent, parseHar, salvageHar, parseMapTile, parseHeroAttr, parseHeroInv, parseCp, parseTroops, parseReports, GID, HE, TRIBE, num, clean };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.TImport = api;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -393,13 +412,15 @@ section[data-sub][hidden]{display:none}
   $('ttImportFile').addEventListener('change', async ev => {
     const f = ev.target.files[0]; if (!f) return; msg('קורא את הקובץ...', true);
     try {
-      const j = JSON.parse(await f.text());
+      const txt = await f.text(); let j, cut = '';
+      try { j = JSON.parse(txt); }
+      catch (e) { const s = TImport.salvageHar(txt); if (!s) throw new Error('הקובץ לא JSON תקין (' + (e.message || e).slice(0, 60) + ')'); j = s.har; cut = ` · הקובץ היה חתוך – נקראו ${s.entries} רשומות עד נקודת החיתוך`; }
       const b = isExtExport(j) ? j : TImport.parseHar(j);
       if (!b || (!(b.pages && b.pages.length) && !(b.tiles && b.tiles.length))) { msg('לא מצאתי בקובץ דפי כפר או מפה (ב-HAR: סינון All + Preserve log).'); ev.target.value = ''; return; }
       const src = isExtExport(j) ? `קובץ תוסף מ-${extFmt(j.exportedAt)}` : 'HAR';
-      if (typeof window.TT_IMPORT === 'function') { msg(`${window.TT_IMPORT(b) || 'יובא'} (${src})`); }
+      if (typeof window.TT_IMPORT === 'function') { msg(`${window.TT_IMPORT(b) || 'יובא'} (${src})${cut}`); }
       else {
-        const slim = { pages: b.pages, tiles: b.tiles, symbols: b.symbols, obs: b.obs, src };
+        const slim = { pages: b.pages, tiles: b.tiles, symbols: b.symbols, obs: b.obs, src: src + cut };
         try { localStorage.setItem(PENDING, JSON.stringify(slim)); }
         catch (e) { slim.tiles = (b.tiles || []).filter(t => t.kind !== 'valley' && t.kind !== 'nature'); try { localStorage.setItem(PENDING, JSON.stringify(slim)); } catch (e2) { msg('הקובץ גדול מדי להעברה – פתח אותו מדף תוכנית הבנייה'); ev.target.value = ''; return; } }
         location.href = 'cp.html';
