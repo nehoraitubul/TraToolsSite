@@ -568,13 +568,7 @@ function importBundle(r) {   // r = {pages, tiles, symbols, obs?} – מ-HAR א�
   const nObs = mergeObs(r.obs);
   return (msg.length ? 'יובא: ' + msg.join(' · ') : 'לא נמצאו דפי כפר') + (mapMsg ? ' · ' + mapMsg : '') + (nObs ? ` · ${nObs} תצפיות חיות` : '') + (r.errors && r.errors.length ? ` · ${r.errors.length} שגיאות` : '');
 }
-window.TT_IMPORT = r => { const m = importBundle(r); save(); renderAll(true); return m; };   // קובץ HAR / קובץ תוסף (מהסרגל)
-window.TT_EXT_APPLY = (d, force) => {   // התוסף: רק מה שחדש מאז הפעם הקודמת
-  const since = force ? 0 : (S.extAt || 0);
-  const pages = (d.pages || []).filter(p => (p.seen || 0) > since), tiles = (d.tiles || []).filter(t => (t.seen || 0) > since);
-  let m = ''; if (pages.length || tiles.length) { m = importBundle({ pages, tiles, symbols: d.symbols, obs: d.obs }); }
-  S.extAt = d.exportedAt || Date.now(); save(); if (m) renderAll(true); return m;
-};
+// הייבוא (קובץ / תוסף) נעשה בסרגל לכל האתר – header.js TTData
 ['tribe', 'noCranny', 'showFields', 'fromMine', 'showRare'].forEach(id => $(id).addEventListener('change', () => { save(); renderAll(true); }));
 $('vName').addEventListener('change', () => { V.name = $('vName').value.trim() || V.name; $('vName').value = V.name; save(); renderTabs(); });
 $('vRole').addEventListener('change', () => { V.role = $('vRole').value; save(); renderAll(false); });

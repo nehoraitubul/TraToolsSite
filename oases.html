@@ -366,19 +366,7 @@ function mergeTiles(tiles, symbols) {
   if (window.TSync) TSync.mapChanged(M);   // נאות וכפרים סביבי עוברים גם לטלפון
   return null;
 }
-window.TT_IMPORT = r => {   // קובץ מהסרגל: המפה נכנסת כאן; דפי כפר נשמרים לדף תוכנית הבנייה
-  const err = mergeTiles(r.tiles || [], r.symbols); const nObs = mergeObs(r.obs);
-  const oas = (r.tiles || []).filter(t => t.kind && t.kind.startsWith('oasis')).length, el = (r.tiles || []).filter(t => t.animals && t.animals.elephant).length;
-  let m = err || `מפה: ${(r.tiles || []).length} משבצות, ${oas} נאות, ${el} עם פילים${nObs ? `, ${nObs} תצפיות` : ''}`;
-  if (r.pages && r.pages.length) { try { localStorage.setItem('tt-import-pending', JSON.stringify({ pages: r.pages, src: 'דפי הכפר מהקובץ' })); m += ` · ${r.pages.length} דפי כפר ייכנסו כשתפתח את <a href="cp.html">תוכנית הבנייה</a>`; } catch (e) {} }
-  render(); return m;
-};
-window.TT_EXT_APPLY = (d, force) => {
-  const since = force ? 0 : (M.extAt || 0); const tiles = (d.tiles || []).filter(t => (t.seen || 0) > since);
-  let m = ''; if (tiles.length) { mergeTiles(tiles, d.symbols); const nObs = mergeObs(d.obs); m = `עודכנו ${tiles.length} משבצות${nObs ? `, ${nObs} תצפיות` : ''}`; } else mergeObs(d.obs);
-  M.extAt = d.exportedAt || Date.now(); try { localStorage.setItem(MAPKEY, JSON.stringify(M)); } catch (e) {}
-  if (tiles.length) render(); return m;
-};
+// הייבוא (קובץ / תוסף) נעשה בסרגל לכל האתר – header.js TTData
 
 // ---------- עזרי תצוגה: אימוג'י, זמן, תגים
 const EMO = { rat: '🐀', spider: '🕷️', snake: '🐍', bat: '🦇', boar: '🐗', wolf: '🐺', bear: '🐻', crocodile: '🐊', tiger: '🐅', elephant: '🐘' };

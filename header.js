@@ -369,15 +369,90 @@ function mergeObs(obs) {   // תצפיות חיות: [t, {animal:n}, tEnd] לכ�
 }
 const extFmt = t => t ? new Date(t).toLocaleString('he-IL', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '';
 
+// ---- ייבוא אחד לכל האתר: קובץ HAR / קובץ תוסף / התוסף עצמו נכנסים לכל המאגרים, לא משנה באיזה דף אתה
+const TTData = (function () {
+  const CPKEY = 'tt-cp-v2', MAPKEY = 'tt-map-v1', LASTKEY = 'tt-pages-last';
+  const touch = k => { try { if (window.TSync) TSync.touch(k); } catch (e) {} };
+  function mergeTiles(tiles, symbols) {
+    if (!tiles || !tiles.length) return { n: 0 };
+    let M = { tiles: {}, adventures: [], at: 0 }; try { M = Object.assign(M, JSON.parse(localStorage.getItem(MAPKEY) || 'null') || {}); } catch (e) {}
+    let n = 0;
+    for (const t of tiles) {
+      const k = t.x + '|' + t.y; const old = M.tiles[k];
+      const c = { x: t.x, y: t.y, k: t.kind, s: t.seen || Date.now() };
+      if (old && old.s >= c.s) continue;   // מה שיש כבר חדש יותר (או אותו דבר)
+      if (t.vtype) c.vt = t.vtype; else if (old && old.vt) c.vt = old.vt;
+      if (t.name) c.n = t.name; if (t.player) c.p = t.player; if (t.alliance) c.al = t.alliance; if (t.pop != null) c.pop = t.pop; if (t.tribe) c.tr = t.tribe; if (t.did != null && t.did !== -1) c.did = t.did;
+      if (t.bonus && t.bonus.length) c.b = t.bonus.map(b => [b.r, b.pct]); if (t.animals && Object.keys(t.animals).length) c.a = t.animals; if (t.lastRaid) c.lr = t.lastRaid;
+      M.tiles[k] = c; n++;
+    }
+    if (symbols && symbols.length) M.adventures = symbols.filter(s => s.type === 'adventure').map(s => ({ x: s.x, y: s.y, d: s.params && s.params.difficulty, s: s.seen }));
+    M.at = Date.now();
+    try { localStorage.setItem(MAPKEY, JSON.stringify(M)); } catch (e) { return { n: 0, err: 'המפה גדולה מדי לאחסון המקומי' }; }
+    try { if (window.TSync) TSync.mapChanged(M); } catch (e) {}
+    return { n, oases: tiles.filter(t => t.kind && t.kind.startsWith('oasis')).length, el: tiles.filter(t => t.animals && t.animals.elephant).length };
+  }
+  function applyPages(pages) {   // כמו "ייבוא" בדף הכפרים: שדות, מבנים, מלאי, ייצור, כוחות (כולל חיות), תרבות, גיבור
+    pages = (pages || []).filter(p => p && p.type).slice().sort((a, b) => (a.seen || 0) - (b.seen || 0));
+    if (!pages.length) return [];
+    let S = null; try { S = JSON.parse(localStorage.getItem(CPKEY) || 'null'); } catch (e) {}
+    if (!S || !S.villages) S = { villages: {}, order: [], cur: null, def: null, showFields: true, fromMine: true, showRare: false };
+    S.order = (S.order || []).filter(id => S.villages[id]);
+    const nv = (id, name) => ({ id, name: name || 'כפר', L: {}, FT: null, tribe: 'gauls', noCranny: false, role: 'feeder' });
+    const ensure = (did, name, xy) => { did = String(did); if (!S.villages[did]) { S.villages[did] = nv(did, name); S.order.push(did); } else if (name) S.villages[did].name = name; if (xy && xy.x != null) { S.villages[did].x = xy.x; S.villages[did].y = xy.y; } return S.villages[did]; };
+    const msg = []; let cpInfo = null;
+    for (const r of pages) {
+      if (r.type === 'cp' && r.villages && r.villages.length) { cpInfo = r; continue; }
+      if (r.type === 'hero_attr' && r.fighting > 0) { S.account = S.account || {}; S.account.hero = { fighting: r.fighting, level: r.level, at: Date.now() }; msg.push(`גיבור: כוח ${r.fighting}`); continue; }
+      if (r.type !== 'dorf1' && r.type !== 'dorf2') continue;
+      const aid = r.activeDid != null ? String(r.activeDid) : null;
+      if (aid && !S.villages[aid] && S.cur && S.villages[S.cur] && !/^\d+$/.test(S.cur)) {   // לשונית ידנית (בלי מספר) הופכת לכפר המיובא
+        const old = S.cur, V0 = S.villages[old]; V0.id = aid; S.villages[aid] = V0; delete S.villages[old]; S.order = S.order.map(x => x === old ? aid : x); if (S.def === old) S.def = aid; S.cur = aid;
+      }
+      if (r.villages && r.villages.length) for (const v of r.villages) ensure(v.did, v.name, v);
+      let id = aid && S.villages[aid] ? aid : null;
+      if (!id && aid) id = ensure(aid, r.villageName).id;
+      if (!id) id = (Object.values(S.villages).find(x => x.name === r.villageName) || {}).id || S.cur;
+      const V = id && S.villages[id]; if (!V) continue;
+      V.seen = V.seen || {}; const sk = r.type === 'dorf1' ? 'd1' : 'd2';
+      if (r.seen && V.seen[sk] && V.seen[sk] >= r.seen) continue;   // כבר יש את הדף הזה או חדש יותר
+      if (r.seen) V.seen[sk] = r.seen;
+      V.L = V.L || {};
+      if (r.troops) { V.troops = r.troops; if (r.seen) V.troopsSeen = r.seen; }
+      if (r.stock) V.stock = r.stock; if (r.cap) V.cap = r.cap; if (r.prod) V.prod = r.prod; if (r.freeCrop != null) V.freeCrop = r.freeCrop; if (r.serverEpoch) V.at = r.serverEpoch;
+      if (r.tribe) V.tribe = r.tribe;
+      if (r.type === 'dorf2' && r.buildings) { for (const k in r.buildings) V.L[k] = r.buildings[k]; V.L.crannies = (r.crannies || []).slice(); msg.push(`${V.name}: מבנים`); }
+      if (r.type === 'dorf1' && r.fields && r.fields.length === 18) { V.FT = r.fields.map(f => f.t); r.fields.forEach((f, i) => { V.L['f' + i] = f.l; }); msg.push(`${V.name}: שדות${r.troops ? ' + כוחות' : ''}`); }
+    }
+    if (cpInfo) {
+      S.account = Object.assign(S.account || {}, { cpTotal: cpInfo.totalCpPerDay, nextSlot: cpInfo.nextSlot || null, owned: cpInfo.villagesOwned, slots: cpInfo.villageSlots, at: cpInfo.serverEpoch || Date.now() / 1000 });
+      for (const row of cpInfo.villages) { const v = Object.values(S.villages).find(x => x.name === row.name); if (v) v.cpGame = row.cpPerDay; }
+      msg.push(`תרבות ${cpInfo.totalCpPerDay} ליום`);
+    }
+    if (!S.cur || !S.villages[S.cur]) S.cur = S.order[0] || null;
+    try { localStorage.setItem(CPKEY, JSON.stringify(S)); touch(CPKEY); } catch (e) {}
+    try { localStorage.setItem(LASTKEY, JSON.stringify({ at: Date.now(), pages })); } catch (e) {}   // לדפים עם מצב משלהם (תחילת משחק)
+    return msg;
+  }
+  function apply(b) {   // מחזיר הודעה אחת לכל מה שנכנס
+    const parts = [];
+    const pm = applyPages(b.pages); if (pm.length) parts.push(pm.join(' · '));
+    const mt = mergeTiles(b.tiles, b.symbols); if (mt.err) parts.push(mt.err); else if (mt.n) parts.push(`מפה: ${mt.n} משבצות חדשות, ${mt.oases} נאות, ${mt.el} עם פילים`);
+    const no = mergeObs(b.obs); if (no) parts.push(`${no} תצפיות חיות`);
+    return parts.join(' · ');
+  }
+  return { apply, applyPages, mergeTiles };
+})();
+
 // ---- סרגל האתר: 5 טאבים שווים + שורת כלים (סנכרון, ייבוא קובץ, תוסף). זהה בכל הדפים.
 (function () {
-  const PAGES = [['index.html', 'הקרופר'], ['cp.html', 'הכפרים'], ['oases.html', 'נאות'], ['transfers.html', 'משלוחים'], ['simulator.html', 'תחילת משחק']];
+  const PAGES = [['index.html', 'הקרופר'], ['cp.html', 'הכפרים'], ['oases.html', 'נאות'], ['catapults.html', 'קטפולטות'], ['transfers.html', 'משלוחים'], ['simulator.html', 'תחילת משחק']];
   const PENDING = 'tt-import-pending';
   const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   const css = `
 .sitenav{position:sticky;top:0;z-index:10;width:100vw;margin:-20px calc(50% - 50vw) 16px;padding:8px 16px 6px;background:var(--bg);border-bottom:2px solid var(--line);box-sizing:border-box}
 .sitenav .tabs,.sitenav .bar{max-width:1100px;margin-inline:auto}
-.sitenav .tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.sitenav .tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .sitenav .tabs a{display:flex;align-items:center;justify-content:center;text-align:center;min-height:40px;padding:5px 4px;font-size:.95rem;font-weight:700;line-height:1.15;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);text-decoration:none}
 .sitenav .tabs a:hover{border-color:var(--accent);color:var(--accent)}
 .sitenav .tabs a[aria-current="page"]{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -396,7 +471,7 @@ const extFmt = t => t ? new Date(t).toLocaleString('he-IL', { hour: '2-digit', m
 .subtabs button[aria-selected="true"]{background:var(--accent-soft,#e8eef7);border-color:var(--accent);color:var(--accent);font-weight:700}
 section[data-sub][hidden]{display:none}
 @media(max-width:480px){.subtabs button{font-size:.82rem;padding:5px 8px}}
-@media(max-width:480px){.sitenav .tabs{gap:4px}.sitenav .tabs a{font-size:.78rem;min-height:38px;padding:4px 2px;border-radius:7px}.sitenav .bar .brand{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:.95rem;color:var(--accent);letter-spacing:.2px}
+@media(max-width:480px){.sitenav .tabs{gap:3px}.sitenav .tabs a{font-size:.7rem;min-height:38px;padding:3px 1px;border-radius:7px}.sitenav .bar .brand{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:.95rem;color:var(--accent);letter-spacing:.2px}
 .sitenav .bar .brand .logo{display:block}
 .sitenav .bar .tbtn{padding:4px 8px;font-size:.8rem}}`;
   const st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
@@ -407,7 +482,7 @@ section[data-sub][hidden]{display:none}
   let msgTimer = null;
   function msg(html, keep) { $('ttMsg').innerHTML = html || ''; clearTimeout(msgTimer); if (html && !keep) msgTimer = setTimeout(() => { $('ttMsg').innerHTML = ''; }, 12000); }
   window.ttMsg = msg;
-  // ---- ייבוא קובץ: הדף מטפל אם יש לו TT_IMPORT, אחרת נשמר ועוברים לתוכנית הבנייה
+  // ---- ייבוא קובץ: נכנס לכל המאגרים של האתר (כפרים, כוחות/חיות, מפה, נאות, תצפיות), והדף נטען מחדש
   $('ttImportBtn').addEventListener('click', () => $('ttImportFile').click());
   $('ttImportFile').addEventListener('change', async ev => {
     const f = ev.target.files[0]; if (!f) return; msg('קורא את הקובץ...', true);
@@ -418,28 +493,31 @@ section[data-sub][hidden]{display:none}
       const b = isExtExport(j) ? j : TImport.parseHar(j);
       if (!b || (!(b.pages && b.pages.length) && !(b.tiles && b.tiles.length))) { msg('לא מצאתי בקובץ דפי כפר או מפה (ב-HAR: סינון All + Preserve log).'); ev.target.value = ''; return; }
       const src = isExtExport(j) ? `קובץ תוסף מ-${extFmt(j.exportedAt)}` : 'HAR';
-      if (typeof window.TT_IMPORT === 'function') { msg(`${window.TT_IMPORT(b) || 'יובא'} (${src})${cut}`); }
-      else {
-        const slim = { pages: b.pages, tiles: b.tiles, symbols: b.symbols, obs: b.obs, src: src + cut };
-        try { localStorage.setItem(PENDING, JSON.stringify(slim)); }
-        catch (e) { slim.tiles = (b.tiles || []).filter(t => t.kind !== 'valley' && t.kind !== 'nature'); try { localStorage.setItem(PENDING, JSON.stringify(slim)); } catch (e2) { msg('הקובץ גדול מדי להעברה – פתח אותו מדף תוכנית הבנייה'); ev.target.value = ''; return; } }
-        location.href = 'cp.html';
-      }
+      const m = TTData.apply(b);
+      done(`${m || 'אין בקובץ שום דבר חדש יותר ממה שכבר יש'} (${src})${cut}`);
     } catch (e) { msg('הקובץ לא נקרא: ' + (e.message || e)); }
     ev.target.value = '';
   });
-  function applyPending() {
-    if (typeof window.TT_IMPORT !== 'function') return;
-    let p = null; try { p = JSON.parse(localStorage.getItem(PENDING) || 'null'); } catch (e) {}
-    if (!p) return; localStorage.removeItem(PENDING);
-    try { msg(`${window.TT_IMPORT(p) || 'יובא'} (${p.src || 'קובץ'})`); } catch (e) { msg('הייבוא נכשל: ' + (e.message || e)); }
+  const MSGKEY = 'tt-import-msg';
+  function done(m) {   // הכל נשמר במאגרים – טוענים את הדף מחדש כדי שכל מה שעל המסך יתעדכן
+    try { sessionStorage.setItem(MSGKEY, m); } catch (e) {}
+    setTimeout(() => location.reload(), 150);
   }
-  // ---- התוסף: הדף מחליט מה לעשות עם הנתונים (TT_EXT_APPLY(data, force) מחזיר הודעה או '')
-  async function extPull(force) {
+  function applyPending() {
+    let m = ''; try { m = sessionStorage.getItem(MSGKEY) || ''; sessionStorage.removeItem(MSGKEY); } catch (e) {}
+    if (m) msg(m);
+    let p = null; try { p = JSON.parse(localStorage.getItem(PENDING) || 'null'); localStorage.removeItem(PENDING); } catch (e) {}   // שארית מהגרסה הקודמת
+    if (p) { const pm = TTData.apply(p); if (pm) done(pm); }
+  }
+  async function extPull(force) {   // התוסף: כל מה שחדש מאז הפעם הקודמת, לכל האתר
     const d = await extCall('export'); if (!d) return;
     const b = $('extRefresh'); b.classList.remove('hidden'); b.classList.add('ok'); b.textContent = '🧩 תוסף ✓'; b.title = 'התוסף מחובר' + (d.meta && d.meta.lastEvent ? ' · אירוע אחרון ' + extFmt(d.meta.lastEvent) : '') + ' – לחיצה: עדכון מלא';
-    if (typeof window.TT_EXT_APPLY === 'function') { try { const m = window.TT_EXT_APPLY(d, force); if (m) msg(m + ' (מהתוסף)'); else if (force) msg('התוסף: אין חדש'); } catch (e) { msg('עדכון מהתוסף נכשל: ' + (e.message || e)); } }
-    else if (force) msg('הנתונים מהתוסף נכנסים בדפי תוכנית הבנייה והנאות.');
+    let since = 0; try { since = force ? 0 : +(localStorage.getItem('tt-ext-at') || 0); } catch (e) {}
+    const pages = (d.pages || []).filter(p => (p.seen || 0) > since), tiles = (d.tiles || []).filter(t => (t.seen || 0) > since);
+    try { localStorage.setItem('tt-ext-at', String(d.exportedAt || Date.now())); } catch (e) {}
+    if (!pages.length && !tiles.length) { mergeObs(d.obs); if (force) msg('התוסף: אין חדש'); return; }
+    const m = TTData.apply({ pages, tiles, symbols: d.symbols, obs: d.obs });
+    if (m) done(m + ' (מהתוסף)'); else if (force) msg('התוסף: אין חדש');
   }
   $('extRefresh').addEventListener('click', () => extPull(true));
   window.ttExtPull = extPull;

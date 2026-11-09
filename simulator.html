@@ -1440,13 +1440,12 @@ function renderResult(m) {
 document.addEventListener('click', ev => { const row = ev.target.closest('.rowx[data-det]'); if (!row) return; const d = $(row.dataset.det); if (d) d.classList.toggle('open'); });
 
 // ------------------------------------------------------------------ wiring
-window.TT_IMPORT = bundle => {   // קובץ HAR / תוסף מהסרגל: אותם דפים שהייתה ההדבקה מביאה
-  const results = (bundle.pages || []).filter(r => r && r.type);
-  if (!results.length) return 'אין בקובץ דפי כפר';
-  const chips = applyImport(results);
-  $('importChips').innerHTML = chips.map(c => `<span class="chip">${c}</span>`).join('');
-  renderState(); return `יובאו ${results.length} דפים`;
-};
+function pullSitePages() {   // ייבוא מהסרגל (מכל דף): אם יש דפי כפר חדשים מאז הפעם הקודמת והסימולטור בשימוש – מעדכנים
+  if (!S) return; let lp = null; try { lp = JSON.parse(localStorage.getItem('tt-pages-last') || 'null'); } catch (e) {}
+  if (!lp || !(lp.at > (S.pagesAt || 0))) return;
+  const results = (lp.pages || []).filter(r => r && r.type); S.pagesAt = lp.at; if (!results.length) { save(); return; }
+  const chips = applyImport(results); $('importChips').innerHTML = chips.map(c => `<span class="chip">${c}</span>`).join(''); save(); renderState();
+}
 $('btnNewServer').addEventListener('click', () => {
   if (S && !$('btnNewServer').dataset.confirm) { $('btnNewServer').dataset.confirm = '1'; $('btnNewServer').textContent = 'בטוח? לחץ שוב לאיפוס'; setTimeout(() => { delete $('btnNewServer').dataset.confirm; $('btnNewServer').textContent = 'שרת חדש: התחל מאפס'; }, 3000); return; }
   delete $('btnNewServer').dataset.confirm; $('btnNewServer').textContent = 'שרת חדש: התחל מאפס';
@@ -1458,6 +1457,7 @@ $('btnNewServer').addEventListener('click', () => {
 $('btnApplyEdit').addEventListener('click', applyEdit);
 $('btnCompute').addEventListener('click', compute);
 load();
+try { pullSitePages(); } catch (e) {}
 if (S) {
   $('tribe').value = S.tribe; if (S.utcOff != null) $('utcOff').value = S.utcOff;
   if (S.startEpoch) { const d = new Date((S.startEpoch + (S.utcOff || 1) * 3600) * 1000); $('startDate').value = d.toISOString().slice(0, 10); $('startTime').value = d.toISOString().slice(11, 16); }

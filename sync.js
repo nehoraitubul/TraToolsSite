@@ -3,7 +3,7 @@
 // הסיסמה לא יוצאת מהדפדפן: המפתח בשרת הוא SHA-256 של (שם משתמש + סיסמה).
 (function () {
   const URL = (window.TRACK_URL || '').trim();
-  const KEYS = ['tt-cp-v2', 'tt-sim-state-v1', 'cropOrder.v2', 'tt-transfers-v1', 'tt-oases-v1', 'tt-map-sync-v1'];
+  const KEYS = ['tt-cp-v2', 'tt-sim-state-v1', 'cropOrder.v2', 'tt-transfers-v1', 'tt-oases-v1', 'tt-map-sync-v1', 'tt-cata-v1'];
   const MAPKEY = 'tt-map-v1', MAPSYNC = 'tt-map-sync-v1', MAP_RADIUS = 40;   // המפה המלאה לא מסתנכרנת (גדולה); רק נאות וכפרים ברדיוס מהכפרים שלי
   const META = 'tt-sync-meta';
   let meta = { user: '', key: '', ts: {}, sig: {}, pending: [], last: 0 };

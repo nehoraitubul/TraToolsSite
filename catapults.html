@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>קטפולטות · TraTools</title>
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<style>
+:root {
+  --bg: #f7f7f8; --surface: #ffffff; --fg: #1f2329; --muted: #5f6570; --line: #dfe2e7; --accent: #2f5d9a; --accent-soft: #e8eef7; --cp: #9a5b00; --cp-soft: #fbefd9; --warn: #a3332a; --warn-soft: #fbe5e2; --ok: #2b7a3b; --ok-soft: #e6f4e8;
+  --body: Arial, Helvetica, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #15171a; --surface: #1d2024; --fg: #e6e8eb; --muted: #9aa1ab; --line: #30353c; --accent: #8fb6ea; --accent-soft: #223047; --cp: #f0b24a; --cp-soft: #3a2c12; --warn: #ef8f80; --warn-soft: #3d221d; --ok: #7fd48f; --ok-soft: #1f3a25; color-scheme: dark; } }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.45; direction: rtl; padding-inline: 16px; padding-block: 20px 60px; }
+.wrap { max-width: 1100px; margin: 0 auto; }
+h1 { font-weight: 700; font-size: 1.9rem; margin: 0 0 2px; }
+h2 { font-weight: 700; font-size: 1.1rem; margin: 0 0 10px; }
+.sub { color: var(--muted); margin: 0 0 14px; max-width: 75ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+.row2 { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; }
+label.f { display: flex; flex-direction: column; gap: 3px; font-size: .85rem; color: var(--muted); }
+label.c { display: inline-flex; gap: 6px; align-items: center; font-size: .9rem; }
+input, select, button { font: inherit; color: var(--fg); }
+input, select { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; }
+input[type=number] { width: 5.5em; font-variant-numeric: tabular-nums; }
+button { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+button.small { padding: 3px 9px; font-size: .82rem; }
+.note { color: var(--muted); font-size: .85rem; }
+.hidden { display: none !important; }
+.pills { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.pills button { font-size: .9rem; padding: 5px 12px; border-radius: 999px; }
+.pills button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.modes button { font-size: 1rem; padding: 7px 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px 10px; }
+.grid label { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: .86rem; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 3px 4px 3px 8px; }
+.grid label:focus-within { border-color: var(--accent); }
+.grid label.off { opacity: .55; }
+.grid input { width: 4.2em; padding: 3px 5px; text-align: center; border-color: transparent; background: var(--surface); }
+.grid label .tag { font-size: .7rem; color: var(--muted); }
+.ans { display: flex; flex-wrap: wrap; gap: 6px 28px; align-items: baseline; }
+.big { font-size: 1.5rem; font-weight: 700; }
+.big small { font-size: .85rem; font-weight: 400; color: var(--muted); }
+.facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip { font-size: .82rem; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.chip.c { background: var(--cp-soft); color: var(--cp); }
+.chip.w { background: var(--warn-soft); color: var(--warn); }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .9rem; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: top; }
+th { font-weight: 700; font-size: .8rem; background: var(--accent-soft); white-space: nowrap; }
+td.n, th.n { text-align: left; white-space: nowrap; }
+tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--fg) 3%, transparent); }
+tr.best td { background: var(--ok-soft) !important; font-weight: 700; }
+.hit { white-space: nowrap; } .hit b { font-weight: 700; } .hit .to0 { color: var(--ok); font-weight: 700; } .hit .part { color: var(--cp); }
+.tbl { overflow-x: auto; }
+details > summary { cursor: pointer; }
+.why { margin: 0; padding-inline-start: 1.2em; } .why li { margin: 3px 0; }
+@media (max-width: 480px) { body { font-size: 14px; } th, td { padding: 4px 5px; font-size: .82rem; } .big { font-size: 1.25rem; } .grid { grid-template-columns: 1fr 1fr; } .grid label { font-size: .8rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav"></nav>
+  <h1>קטפולטות</h1>
+  <p class="sub">כמה קטפולטות צריך, ובכמה גלים, כדי להרוס כפר, רק את השדות, או לעשות קרופ לוק. מניח שההגנה בכפר כבר נוקתה (הקטפולטות לא מתות).</p>
+
+  <div class="card">
+    <div class="pills modes" id="modes" role="group" aria-label="מה להרוס">
+      <button type="button" data-mode="village">🏚 כפר שלם</button>
+      <button type="button" data-mode="fields">🌾 רק שדות</button>
+      <button type="button" data-mode="crop">🔒 קרופ לוק</button>
+    </div>
+    <p class="note" id="modeNote" style="margin:8px 0 0"></p>
+  </div>
+
+  <div class="card" id="result"></div>
+
+  <div class="card">
+    <h2>המתקפה שלי</h2>
+    <div class="row2">
+      <label class="f">שבט<select id="tribe"><option value="romans">רומאים</option><option value="teutons">טאוטונים</option><option value="gauls">גאלים</option><option value="egyptians">מצרים</option><option value="huns">הונים</option></select></label>
+      <label class="f">נפחייה לקטפולטות<input type="number" id="upg" min="0" max="20" value="0"></label>
+      <label class="c"><input type="checkbox" id="rp20" checked> נקודת מפגש 20 (2 מטרות בגל)</label>
+    </div>
+    <div class="row2" style="margin-top:12px">
+      <div class="pills" id="planPills" role="group" aria-label="חישוב"><span class="note">לחשב:</span><button type="button" data-plan="need">כמה צריך</button><button type="button" data-plan="have">יש לי כבר</button></div>
+      <label class="f" data-for="need">גלים בכל סבב<input type="number" id="X" min="1" max="60" value="4"></label>
+      <label class="f" data-for="need">סבבים<input type="number" id="Y" min="1" max="20" value="1"></label>
+      <label class="f" data-for="have">יש לי קטפולטות<input type="number" id="N" min="1" value="200"></label>
+    </div>
+    <details style="margin-top:12px"><summary class="note">עוד: זמן אימון, מרחק</summary>
+      <div class="row2" style="margin-top:8px">
+        <label class="f">רמת סדנה<input type="number" id="ws" min="1" max="20" value="10"></label>
+        <label class="f">מרחק למטרה<input type="number" id="dist" min="0" step="0.1" value="0"></label>
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>הכפר המותקף</h2>
+    <div class="row2">
+      <span class="note">מוכן מראש:</span>
+      <button type="button" class="small" data-preset="feeder">פידר טיפוסי</button>
+      <button type="button" class="small" data-preset="small">כפר קטן</button>
+      <button type="button" class="small" data-preset="capital">בירת קרופר</button>
+      <button type="button" class="small" data-preset="zero">אפס הכל</button>
+    </div>
+    <div class="row2" style="margin-top:12px">
+      <label class="f">סוג העמק<select id="valley"></select></label>
+      <label class="f">🪵 רמת עצים<input type="number" id="lw" min="0" max="21" value="10"></label>
+      <label class="f">🧱 רמת טיט<input type="number" id="lc" min="0" max="21" value="10"></label>
+      <label class="f">⛏️ רמת ברזל<input type="number" id="li" min="0" max="21" value="10"></label>
+      <label class="f">🌾 רמת יבול<input type="number" id="lr" min="0" max="21" value="10"></label>
+    </div>
+    <p class="note" style="margin:10px 0 6px" id="bNote">מבנים (0 = אין). מה שלא רלוונטי למצב שנבחר מעומעם.</p>
+    <div class="grid" id="bgrid"></div>
+    <p class="note" style="margin:8px 0 0">החומה לא נפגעת מקטפולטות – רק אילים. מחבואים וסתת אפשר לפגוע רק במטרה אקראית, והסתת תמיד אחרון; הם בסוף התוכנית.</p>
+  </div>
+
+  <details class="card"><summary><b>איך זה מחושב</b></summary>
+    <ul class="why note" style="margin-top:8px">
+      <li>הנוסחה מהסימולטור של Kirilloid: נזק = 4 × σ × ⌊קטפולטות ÷ עמידות⌋ × שדרוג. בניין ברמה L נהרס כשהנזק פחות ½ ≥ L+(L−1)+…+1. בדיקה: 53 קטפולטות בלי שדרוג מורידות רמה 20 ל-0, ו-50 משאירות רמה 5 – כמו במבחנים שלו.</li>
+      <li>שדרוג נפחייה: ×1.0205 לכל רמה (רמה 20 ≈ ×1.5: 36 קטפולטות לרמה 20, כמו בטבלאות של הקהילה).</li>
+      <li>סתת (רק בבירה): +10% עמידות לכל רמה, <b>גם לשדות</b> (Travian: "durability of buildings and resource fields"). סתת 20 = פי 3 קטפולטות. כל עוד הסתת עומד – כל שאר הכפר קשה פי כמה.</li>
+      <li>2 מטרות (נקודת מפגש 20, לפחות 20 קטפולטות): הכוח מתחלק חצי-חצי. מטרה מסוג שיש ממנו כמה (שדות יבול, 2 אסמים) – נפגע תמיד הגבוה ביותר, ולכן אין טעם לשים אותה פעמיים באותו גל.</li>
+      <li>נזק עודף אחרי שבניין ירד ל-0 הולך לאיבוד (ככה במודל). התוכנית מצמידה מטרות כדי לבזבז כמה שפחות.</li>
+      <li>σ תלוי ביחס התקפה/הגנה; בכפר נקי הוא ≈1. אם נשארה הגנה – הקטפולטות חלשות יותר וגם מתות.</li>
+    </ul>
+  </details>
+</div>
+
+<script src="config.js"></script>
+<script src="header.js"></script>
+<script src="sync.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const nf = n => Math.round(n).toLocaleString('en-US');
+const KEY = 'tt-cata-v1';
+
+// ---------- נתונים
+const CATA = {   // Kirilloid: base/units + t4.fs/units (התקפה, עלות, זמן אימון בסיסי, כלכלה, מהירות)
+  romans: { name: 'קטפולטות', a: 75, c: [950, 1350, 600, 90] },
+  teutons: { name: 'קטפולטות', a: 50, c: [900, 1200, 600, 60] },
+  gauls: { name: 'קטפולטות', a: 70, c: [960, 1450, 630, 90] },
+  egyptians: { name: 'קטפולטות', a: 65, c: [980, 1510, 660, 100] },
+  huns: { name: 'קטפולטות', a: 45, c: [950, 1280, 620, 60] },
+};
+const CATA_T = 9000, CATA_U = 6, CATA_V = 3;
+const VALLEYS = [['f3', '4-4-4-6'], ['f1', '3-3-3-9'], ['f6', '1-1-1-15'], ['f7', '4-4-3-7'], ['f8', '3-4-4-7'], ['f9', '4-3-4-7'], ['f2', '3-4-5-6'], ['f4', '4-5-3-6'], ['f5', '5-3-4-6'], ['f10', '3-5-4-6'], ['f11', '4-3-5-6'], ['f12', '5-4-3-6']];
+const FIELD = { w: ['🪵', 'עץ', 'חוטבי עצים'], c: ['🧱', 'טיט', 'בורות טיט'], i: ['⛏️', 'ברזל', 'מכרות ברזל'], r: ['🌾', 'יבול', 'שדות יבול'] };
+// key, שם, קבוצה (אותה קבוצה = אותה מטרה במשחק), rnd = רק מטרה אקראית, crop = חלק מקרופ לוק (ברירת מחדל)
+const B = [
+  ['mb', 'בניין ראשי'], ['wh', 'מחסן', 'wh'], ['wh2', 'מחסן נוסף', 'wh'], ['gr', 'אסם', 'gr'], ['gr2', 'אסם נוסף', 'gr'],
+  ['market', 'שוק'], ['rp', 'נקודת מפגש'], ['residence', 'מגורים / ארמון'], ['townhall', 'עירייה'], ['academy', 'אקדמיה'], ['smithy', 'נפחייה'],
+  ['barracks', 'קסרקטין'], ['stable', 'אורווה'], ['workshop', 'סדנה'], ['embassy', 'שגרירות'], ['tradeoffice', 'משרד מסחר'], ['treasury', 'אוצר'],
+  ['tournament', 'כיכר אימונים'], ['heromansion', 'אחוזת הגיבור'], ['sawmill', 'מנסרה'], ['brickyard', 'מפעל לבנים'], ['foundry', 'מפעל ברזל'],
+  ['mill', 'טחנת קמח'], ['bakery', 'מאפייה'], ['cranny', 'מחבוא (רמה)', 'cranny', 1], ['crannyN', 'כמה מחבואים'], ['stonemason', 'סתת', 'stonemason', 1],
+];
+const CROP_OPT = [['gr', 'אסמים', true, 'בלי אסם נשאר מקום ל-800 יבול – אי אפשר לשדרג יבול מעל רמה 8'], ['market', 'שוק', true, 'בלי שוק הוא לא שולח ולא קונה יבול (אחרים עדיין יכולים לשלוח לו)'], ['mb', 'בניין ראשי', false, 'בונה לאט יותר'], ['wh', 'מחסנים', false, 'בלי מחסן – 800 מכל משאב, אי אפשר לשדרג יבול מעל 5'], ['mill', 'טחנת קמח', false, 'בונוס על שדות ב-0 = כמעט כלום'], ['bakery', 'מאפייה', false, 'כנ"ל']];
+const PRESETS = {
+  feeder: { valley: 'f3', fl: { w: 10, c: 10, i: 10, r: 10 }, b: { mb: 10, wh: 16, gr: 16, market: 20, rp: 1, residence: 10, townhall: 10, academy: 10, barracks: 3, heromansion: 10, sawmill: 5, brickyard: 5, foundry: 5, mill: 5, bakery: 5 } },
+  small: { valley: 'f3', fl: { w: 5, c: 5, i: 5, r: 5 }, b: { mb: 5, wh: 7, gr: 7, market: 3, rp: 1, residence: 5, cranny: 5, crannyN: 2 } },
+  capital: { valley: 'f6', fl: { w: 10, c: 10, i: 10, r: 15 }, b: { mb: 20, wh: 20, wh2: 15, gr: 20, gr2: 15, market: 20, rp: 20, residence: 20, townhall: 10, academy: 20, smithy: 20, barracks: 20, stable: 20, workshop: 10, embassy: 10, tradeoffice: 10, treasury: 10, tournament: 10, heromansion: 20, sawmill: 5, brickyard: 5, foundry: 5, mill: 5, bakery: 5, stonemason: 20, cranny: 10, crannyN: 2 } },
+  zero: { valley: 'f3', fl: { w: 0, c: 0, i: 0, r: 0 }, b: {} },
+};
+const D0 = () => ({ mode: 'village', tribe: '', upg: 0, rp20: true, plan: 'need', X: 10, Y: 1, N: 200, ws: 10, dist: 0, valley: 'f3', fl: { w: 10, c: 10, i: 10, r: 10 }, b: Object.assign({}, PRESETS.feeder.b), crop: Object.fromEntries(CROP_OPT.map(o => [o[0], o[2]])) });
+let P = D0();
+try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o) { P = Object.assign(D0(), o); P.fl = Object.assign(D0().fl, o.fl || {}); P.crop = Object.assign(D0().crop, o.crop || {}); P.b = o.b || {}; } } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(P)); if (window.TSync) TSync.touch(KEY); } catch (e) {} }
+function cpTribe() { try { const c = JSON.parse(localStorage.getItem('tt-cp-v2') || 'null'); const v = c && c.villages && c.villages[c.cur]; return (v && v.tribe) || ''; } catch (e) { return ''; } }
+const tribe = () => CATA[P.tribe] ? P.tribe : (CATA[cpTribe()] ? cpTribe() : 'romans');
+
+// ---------- מודל ההריסה (Kirilloid base/combat/fns.ts)
+const r005 = x => 0.005 * Math.round(x / 0.005);
+const siegeUpg = lvl => r005(1.0205 ** lvl);
+const sigma = x => (x > 1 ? 2 - x ** -1.5 : x ** 1.5) / 2;
+
+function points(each, total, stone) {   // נזק למטרה: each = הקטפולטות שמכוונות אליה, total = כל הגל (ל-σ)
+  const dur = 1 + 0.1 * stone;
+  const ratio = (total * CATA[tribe()].a) / 10;   // כפר נקי: הגנת בסיס 10
+  return 4 * sigma(ratio) * Math.floor(each / dur) * siegeUpg(P.upg);
+}
+function demolish(level, dmg) { dmg -= 0.5; if (dmg < 0) return level; while (dmg >= level && level) dmg -= level--; return level; }
+function need(level, stone) { if (!level) return 0; for (let c = 1; c <= 20000; c++) if (demolish(level, points(c, c, stone)) === 0) return c; return Infinity; }
+
+// ---------- המטרות לפי המצב
+function fieldCounts() { const v = (VALLEYS.find(x => x[0] === P.valley) || VALLEYS[0])[1].split('-').map(Number); return { w: v[0], c: v[1], i: v[2], r: v[3] }; }
+function targets(mode) {
+  const out = []; const fc = fieldCounts();
+  const addFields = types => { for (const t of types) for (let k = 0; k < fc[t]; k++) if (P.fl[t] > 0) out.push({ key: 'f' + t + k, name: FIELD[t][1], icon: FIELD[t][0], group: 'f' + t, level: +P.fl[t] }); };
+  const addB = (key, name, group, rnd) => { const L = +P.b[key] || 0; if (L > 0) out.push({ key, name, group: group || key, rnd: !!rnd, level: L }); };
+  const stone = +P.b.stonemason || 0;
+  if (mode === 'fields') { addFields(['w', 'c', 'i', 'r']); }
+  else if (mode === 'crop') {
+    addFields(['r']);
+    for (const [k] of CROP_OPT) if (P.crop[k]) { if (k === 'gr') { addB('gr', 'אסם', 'gr'); addB('gr2', 'אסם נוסף', 'gr'); } else if (k === 'wh') { addB('wh', 'מחסן', 'wh'); addB('wh2', 'מחסן נוסף', 'wh'); } else { const b = B.find(x => x[0] === k); addB(k, b[1]); } }
+  } else {
+    addFields(['w', 'c', 'i', 'r']);
+    for (const [k, name, group, rnd] of B) { if (k === 'cranny' || k === 'crannyN' || k === 'stonemason') continue; addB(k, name, group, rnd); }
+    const cn = +P.b.crannyN || 0, cl = +P.b.cranny || 0; for (let i = 0; i < cn; i++) if (cl > 0) out.push({ key: 'cranny' + i, name: 'מחבוא', group: 'cranny', rnd: true, level: cl });
+    addB('stonemason', 'סתת', 'stonemason', true);
+  }
+  return { list: out, stone: mode === 'village' ? null : stone };   // null = הסתת הוא מטרה (רמתו משתנה תוך כדי)
+}
+
+// ---------- תוכנית גלים: חמדנית – הכי גבוה קודם, מצמידים מטרה שנייה כשחצי גל מספיק
+function simulate(tg, c, maxWaves) {
+  const rem = tg.list.map(t => Object.assign({}, t));
+  const stoneNow = () => { if (tg.stone != null) return tg.stone; const s = rem.find(t => t.key === 'stonemason'); return s ? s.level : 0; };
+  const dual = P.rp20 && c >= 20; const waves = [];
+  while (waves.length < maxWaves) {
+    const alive = rem.filter(t => t.level > 0); if (!alive.length) break;
+    const normal = alive.filter(t => !t.rnd);
+    let pool = normal.length ? normal : alive.filter(t => t.key !== 'stonemason'); if (!pool.length) pool = alive;
+    pool.sort((a, b) => b.level - a.level);
+    const t = pool[0], st = stoneNow(); const hits = [];
+    const hit = (x, dmg) => { const from = x.level; x.level = demolish(x.level, dmg); hits.push({ name: x.name, icon: x.icon || '', from, to: x.level }); };
+    if (dual && normal.length) {
+      const half = points(c / 2, c, st); const partner = pool.find(o => o !== t && o.group !== t.group);
+      if (partner && demolish(t.level, half) === 0) { hit(t, half); hit(partner, half); }
+      else hit(t, points(c, c, st));
+    } else hit(t, points(c, c, st));
+    waves.push({ c, hits });
+  }
+  const left = rem.filter(t => t.level > 0).length;
+  return { waves, done: left === 0 };
+}
+
+function minWaves(tg) {   // חסם תחתון: כל גל פוגע בעד 2 מטרות מקבוצות שונות; מטרות אקראיות – אחת לגל
+  const normal = tg.list.filter(t => !t.rnd), rnd = tg.list.length - normal.length;
+  if (!P.rp20) return tg.list.length;
+  const g = {}; for (const t of normal) g[t.group] = (g[t.group] || 0) + 1;
+  return Math.max(Math.ceil(normal.length / 2), ...Object.values(g), 0) + rnd;
+}
+function findMin(tg, max) {   // הכי מעט קטפולטות לגל שמסיימות ב-max גלים
+  for (let c = 1; c < 40; c++) { const s = simulate(tg, c, max); if (s.done) return { c, s }; }
+  let lo = 40, hi = 40; while (!simulate(tg, hi, max).done) { lo = hi; hi *= 2; if (hi > 200000) return null; }
+  while (lo < hi) { const m = (lo + hi) >> 1; if (simulate(tg, m, max).done) hi = m; else lo = m + 1; }
+  return { c: hi, s: simulate(tg, hi, max) };
+}
+
+// ---------- תצוגה
+const fmtT = h => { if (!(h > 0)) return ''; const m = Math.round(h * 60); const d = Math.floor(m / 1440), hh = Math.floor((m % 1440) / 60), mm = m % 60; return (d ? d + ' ימים ' : '') + (hh ? hh + ' ש׳ ' : '') + (!d && mm ? mm + ' דק׳' : ''); };
+function costChips(total) {
+  const t = CATA[tribe()]; const res = t.c.reduce((s, v) => s + v, 0) * total; const trainH = total * CATA_T * 0.9 ** (Math.max(1, P.ws) - 1) / 3600;
+  let h = `<span class="chip c">💰 ${nf(res)} משאבים (${t.c.map(v => nf(v * total)).join(' / ')})</span><span class="chip">🌾 ${nf(total * CATA_U)} יבול/שעה</span><span class="chip">⏳ אימון בסדנה ${P.ws}: ${fmtT(trainH)}</span>`;
+  if (P.dist > 0) h += `<span class="chip">🧭 ${fmtT(P.dist / CATA_V)} לכיוון (סבב ${fmtT(2 * P.dist / CATA_V)})</span>`;
+  return h;
+}
+function waveTable(waves) {
+  return `<div class="tbl"><table><thead><tr><th>גל</th><th class="n">קטפולטות</th><th>מטרה 1</th><th>מטרה 2</th></tr></thead><tbody>${waves.map((w, i) => `<tr><td>${i + 1}</td><td class="n">${w.c}${w.hits.length > 1 ? ' <span class="note">(חצי-חצי)</span>' : ''}</td>${[0, 1].map(j => { const x = w.hits[j]; return `<td>${x ? `<span class="hit">${x.icon} ${esc(x.name)} <b>${x.from}</b> → <span class="${x.to ? 'part' : 'to0'}">${x.to}</span></span>` : ''}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function render() {
+  const t = tribe();
+  $('tribe').value = t; $('upg').value = P.upg; $('rp20').checked = P.rp20; $('X').value = P.X; $('Y').value = P.Y; $('N').value = P.N; $('ws').value = P.ws; $('dist').value = P.dist;
+  $('valley').value = P.valley; $('lw').value = P.fl.w; $('lc').value = P.fl.c; $('li').value = P.fl.i; $('lr').value = P.fl.r;
+  document.querySelectorAll('#modes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === P.mode ? 'true' : 'false'));
+  document.querySelectorAll('#planPills button').forEach(b => b.setAttribute('aria-pressed', b.dataset.plan === P.plan ? 'true' : 'false'));
+  document.querySelectorAll('[data-for]').forEach(el => el.classList.toggle('hidden', el.dataset.for !== P.plan));
+  $('modeNote').innerHTML = P.mode === 'village' ? 'כל המבנים וכל השדות עד 0 – אוכלוסייה 0 והכפר נעלם (חוץ מהחומה, שצריך אילים).'
+    : P.mode === 'fields' ? 'כל 18 השדות עד 0. המטרה "חוטבי עצים" וכו\' פוגעת תמיד בשדה הגבוה מאותו סוג.'
+    : `קרופ לוק = להוריד את הייצור שלו למינוס כדי שהצבא ירעב, ולמנוע ממנו לבנות חזרה. תמיד: כל שדות היבול. עוד: ${CROP_OPT.map(([k, n, , why]) => `<label class="c" title="${esc(why)}" style="margin-inline-end:10px"><input type="checkbox" data-crop="${k}"${P.crop[k] ? ' checked' : ''}> ${n}</label>`).join('')}<br><span class="note">אסם + שוק: בלי אסם הוא לא יכול לחסוך יבול לשדרוג שדות מעל 8, בלי שוק הוא לא קונה. טחנה ומאפייה – בונוס על שדות שכבר ב-0, לא שווה קטפולטות.</span>`;
+  document.querySelectorAll('[data-crop]').forEach(i => i.addEventListener('change', () => { P.crop[i.dataset.crop] = i.checked; save(); render(); }));
+  // רשת המבנים
+  const relevant = k => k === 'stonemason' || P.mode === 'village' || (P.mode === 'crop' && !!P.crop[k.replace(/2$/, '')]);
+  $('bgrid').innerHTML = B.map(([k, name, , rnd]) => `<label class="${relevant(k) ? '' : 'off'}">${name}${rnd ? ' <span class="tag">אקראי</span>' : ''}<input type="number" min="0" max="${k === 'crannyN' ? 10 : 20}" data-b="${k}" value="${P.b[k] || 0}"></label>`).join('');
+  document.querySelectorAll('[data-b]').forEach(i => i.addEventListener('change', () => { P.b[i.dataset.b] = Math.max(0, Math.min(+i.max, Math.floor(+i.value || 0))); save(); render(); }));
+  renderResult();
+}
+function renderResult() {
+  const tg = targets(P.mode); const R = $('result'); const cat = CATA[tribe()].name;
+  if (!tg.list.length) { R.innerHTML = '<p class="note" style="margin:0">אין מה להרוס – תזין רמות בכפר המותקף (למטה).</p>'; return; }
+  const stoneLvl = tg.stone != null ? tg.stone : (+P.b.stonemason || 0);
+  const warn = [];
+  if (stoneLvl > 0) warn.push(`<span class="chip w">🪨 סתת ${stoneLvl} = פי ${(1 + 0.1 * stoneLvl).toFixed(1)} קטפולטות${P.mode === 'village' ? ' (הוא נהרס אחרון)' : ''}</span>`);
+  if (P.plan === 'need') {
+    const X = Math.max(1, P.X); let Y = Math.max(1, P.Y);
+    const lb = minWaves(tg); let bump = '';
+    if (X * Y < lb) { const Y2 = Math.ceil(lb / X); bump = `<span class="chip w">ב-${X * Y} גלים זה לא אפשרי: גל פוגע לכל היותר ב-${P.rp20 ? '2 מטרות' : 'מטרה אחת'}, ויש ${tg.list.length} – צריך לפחות ${lb} גלים. חישבתי ל-${Y2} סבבים</span>`; Y = Y2; }
+    const max = X * Y; const best = findMin(tg, max);
+    if (!best) { R.innerHTML = '<p class="note">לא מצאתי מספר סביר – נסה יותר גלים.</p>'; return; }
+    const total = best.c * X, used = best.s.waves.length;
+    R.innerHTML = `<div class="ans"><div class="big">${nf(total)} ${cat} <small>${X} גלים × ${best.c}${Y > 1 ? `, ${Y} סבבים` : ''}</small></div><div class="note">${used} גלים בפועל${used < max ? ` (מתוך ${max})` : ''}${Y > 1 ? ` · אותן קטפולטות חוזרות ויוצאות ${Y} פעמים${P.dist > 0 ? `, כל סבב ${fmtT(2 * P.dist / CATA_V)}` : ''}` : ''} · מינימום אפשרי: ${lb} גלים</div></div>
+      <div class="facts">${bump}${costChips(total)}${warn.join('')}</div>
+      <details style="margin-top:12px"${used <= 12 ? ' open' : ''}><summary><b>תוכנית הגלים</b> <span class="note">– סדר השליחה, כל גל ${best.c}</span></summary>${waveTable(best.s.waves)}</details>
+      ${perTarget(tg)}`;
+  } else {
+    const N = Math.max(1, P.N); const rows = [];
+    for (let X = 1; X <= Math.min(N, 40); X++) { const c = Math.floor(N / X); const s = simulate(tg, c, 600); if (!s.done) continue; rows.push({ X, c, w: s.waves.length, r: Math.ceil(s.waves.length / X), s }); }
+    if (!rows.length) { R.innerHTML = `<p class="note">עם ${nf(N)} קטפולטות זה לא נגמר גם ב-600 גלים – צריך יותר קטפולטות.</p>`; return; }
+    const minR = Math.min(...rows.map(r => r.r)); const best = rows.filter(r => r.r === minR).sort((a, b) => a.w - b.w || a.X - b.X)[0];
+    const show = rows.filter(r => r.X <= 12 || r === best);
+    R.innerHTML = `<div class="ans"><div class="big">${best.r === 1 ? 'סבב אחד' : best.r + ' סבבים'} <small>${best.X} גלים × ${best.c} ${cat}</small></div><div class="note">${best.w} גלים בסך הכל${best.r > 1 && P.dist > 0 ? ` · כל סבב ${fmtT(2 * P.dist / CATA_V)}` : ''}</div></div>
+      <div class="facts">${warn.join('')}</div>
+      <div class="tbl" style="margin-top:10px"><table><thead><tr><th class="n">גלים בסבב</th><th class="n">קטפולטות לגל</th><th class="n">גלים בסך הכל</th><th class="n">סבבים</th></tr></thead><tbody>${show.map(r => `<tr${r === best ? ' class="best"' : ''}><td class="n">${r.X}</td><td class="n">${r.c}</td><td class="n">${r.w}</td><td class="n">${r.r}</td></tr>`).join('')}</tbody></table></div>
+      <details style="margin-top:12px"><summary><b>תוכנית הגלים</b> <span class="note">– ההמלצה, כל גל ${best.c}</span></summary>${waveTable(best.s.waves)}</details>
+      ${perTarget(tg)}`;
+  }
+}
+function perTarget(tg) {   // כמה קטפולטות לכל מטרה בגל אחד
+  const seen = new Map();
+  for (const t of tg.list) { const k = t.name + '|' + t.level; if (!seen.has(k)) seen.set(k, { t, n: 0 }); seen.get(k).n++; }
+  const st = tg.stone != null ? tg.stone : (+P.b.stonemason || 0);
+  const rows = [...seen.values()].sort((a, b) => b.t.level - a.t.level).map(({ t, n }) => `<tr><td>${t.icon || ''} ${esc(t.name)}${n > 1 ? ` ×${n}` : ''}${t.rnd ? ' <span class="note">(אקראי)</span>' : ''}</td><td class="n">${t.level}</td><td class="n">${nf(need(t.level, t.key === 'stonemason' ? t.level : st))}</td></tr>`).join('');
+  return `<details style="margin-top:8px"><summary class="note">כמה קטפולטות להרוס כל מטרה בגל אחד</summary><div class="tbl"><table><thead><tr><th>מטרה</th><th class="n">רמה</th><th class="n">קטפולטות</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
+}
+
+// ---------- אירועים
+$('valley').innerHTML = VALLEYS.map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+document.querySelectorAll('#modes button').forEach(b => b.addEventListener('click', () => { P.mode = b.dataset.mode; save(); render(); }));
+document.querySelectorAll('#planPills button').forEach(b => b.addEventListener('click', () => { P.plan = b.dataset.plan; save(); render(); }));
+const num = (id, key, lo, hi, float) => $(id).addEventListener('change', () => { let v = float ? +$(id).value : Math.floor(+$(id).value); if (!isFinite(v)) v = lo; P[key] = Math.max(lo, Math.min(hi, v)); save(); render(); });
+num('upg', 'upg', 0, 20); num('X', 'X', 1, 60); num('Y', 'Y', 1, 20); num('N', 'N', 1, 100000); num('ws', 'ws', 1, 20); num('dist', 'dist', 0, 400, true);
+$('tribe').addEventListener('change', () => { P.tribe = $('tribe').value; save(); render(); });
+$('rp20').addEventListener('change', () => { P.rp20 = $('rp20').checked; save(); render(); });
+$('valley').addEventListener('change', () => { P.valley = $('valley').value; save(); render(); });
+for (const [id, k] of [['lw', 'w'], ['lc', 'c'], ['li', 'i'], ['lr', 'r']]) $(id).addEventListener('change', () => { P.fl[k] = Math.max(0, Math.min(21, Math.floor(+$(id).value || 0))); save(); render(); });
+document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => { const p = PRESETS[b.dataset.preset]; P.valley = p.valley; P.fl = Object.assign({}, p.fl); P.b = Object.assign({}, p.b); save(); render(); }));
+render();
+</script>
+</body>
+</html>
